@@ -1,0 +1,17 @@
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.exe
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.deps.json
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.runtimeconfig.json
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.runtimeconfig.dev.json
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.dll
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\netcoreapp3.0\ALE2.pdb
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.csproj.AssemblyReference.cache
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.Form1.resources
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.csproj.GenerateResource.cache
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.GeneratedMSBuildEditorConfig.editorconfig
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.AssemblyInfoInputs.cache
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.AssemblyInfo.cs
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.csproj.CoreCompileInputs.cache
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.dll
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.pdb
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.genruntimeconfig.cache
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\netcoreapp3.0\ALE2.Properties.Resources.resources
