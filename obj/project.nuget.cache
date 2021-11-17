@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "cRENyZhISADWAqjO6SAFbyC9El8HSbpoI2dPHtAxzQBev8snwgGhh9I954qgur9zxjXCQ4ciTndpNp2FNaJO1w==",
+  "success": true,
+  "projectFilePath": "D:\\OneDrive\\OneDrive - Office 365 Fontys\\Uni\\Electives\\ALE\\ALE2\\ale2\\ALE2\\ALE2.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ISSD\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.0.3\\microsoft.netcore.app.host.win-x64.3.0.3.nupkg.sha512",
+    "C:\\Users\\ISSD\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.0.1\\microsoft.aspnetcore.app.ref.3.0.1.nupkg.sha512",
+    "C:\\Users\\ISSD\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\3.0.0\\microsoft.windowsdesktop.app.ref.3.0.0.nupkg.sha512",
+    "C:\\Users\\ISSD\\.nuget\\packages\\microsoft.netcore.app.ref\\3.0.0\\microsoft.netcore.app.ref.3.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
