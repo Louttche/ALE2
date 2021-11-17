@@ -12,16 +12,15 @@ using System.IO;
 
 namespace ALE2
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         public Graph graph;
-        private string graphVizString = @" digraph g{ label=""Graph""; labelloc=top;labeljust=left;}";
 
         // UI Elements
         public RichTextBox ui_rtb_filecontents;
         public PictureBox ui_pb_graph;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -33,7 +32,6 @@ namespace ALE2
 
             this.graph = new Graph(this);
             lbl_fileloaded.Text = "No graph loaded.";
-            lbl_status.Text = "Open a file to start drawing!";
         }
 
         private void btn_browse_Click(object sender, EventArgs e)
@@ -56,7 +54,6 @@ namespace ALE2
                 else
                 {
                     pb_graph.Image = null;
-                    lbl_status.Text = "Parsing not implemented yet";
                     lbl_fileloaded.Text = "No graph loaded.";
                 }
             }

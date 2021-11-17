@@ -64,7 +64,6 @@ D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\n
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\ref\ALE2.dll
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\ALE2.pdb
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.csproj.AssemblyReference.cache
-D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.Form1.resources
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.Properties.Resources.resources
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.csproj.GenerateResource.cache
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.GeneratedMSBuildEditorConfig.editorconfig
@@ -80,3 +79,4 @@ D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\n
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\is_DFA.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\is_NDFA.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\graphviz_example_large.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.MainForm.resources
