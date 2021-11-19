@@ -57,14 +57,16 @@
             this.panel_graph.AutoScroll = true;
             this.panel_graph.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_graph.Controls.Add(this.pb_graph);
-            this.panel_graph.Location = new System.Drawing.Point(180, 12);
+            this.panel_graph.Location = new System.Drawing.Point(206, 16);
+            this.panel_graph.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel_graph.Name = "panel_graph";
-            this.panel_graph.Size = new System.Drawing.Size(553, 401);
+            this.panel_graph.Size = new System.Drawing.Size(632, 534);
             this.panel_graph.TabIndex = 2;
             // 
             // pb_graph
             // 
-            this.pb_graph.Location = new System.Drawing.Point(5, 4);
+            this.pb_graph.Location = new System.Drawing.Point(6, 5);
+            this.pb_graph.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_graph.Name = "pb_graph";
             this.pb_graph.Size = new System.Drawing.Size(542, 391);
             this.pb_graph.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -81,52 +83,57 @@
             this.panel1.Controls.Add(this.pb_dfa);
             this.panel1.Controls.Add(this.lbl_finite);
             this.panel1.Controls.Add(this.lbl_dfa);
-            this.panel1.Location = new System.Drawing.Point(13, 12);
+            this.panel1.Location = new System.Drawing.Point(15, 16);
+            this.panel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(161, 401);
+            this.panel1.Size = new System.Drawing.Size(184, 535);
             this.panel1.TabIndex = 8;
             // 
             // rtb_words
             // 
-            this.rtb_words.Location = new System.Drawing.Point(13, 34);
+            this.rtb_words.Location = new System.Drawing.Point(15, 45);
+            this.rtb_words.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.rtb_words.Name = "rtb_words";
-            this.rtb_words.Size = new System.Drawing.Size(138, 260);
+            this.rtb_words.Size = new System.Drawing.Size(157, 345);
             this.rtb_words.TabIndex = 16;
             this.rtb_words.Text = "";
             // 
             // pb_wordinput
             // 
             this.pb_wordinput.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_wordinput.Location = new System.Drawing.Point(117, 296);
+            this.pb_wordinput.Location = new System.Drawing.Point(134, 395);
+            this.pb_wordinput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_wordinput.Name = "pb_wordinput";
-            this.pb_wordinput.Size = new System.Drawing.Size(34, 30);
+            this.pb_wordinput.Size = new System.Drawing.Size(42, 40);
             this.pb_wordinput.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pb_wordinput.TabIndex = 15;
             this.pb_wordinput.TabStop = false;
             // 
             // tb_wordinput
             // 
-            this.tb_wordinput.Location = new System.Drawing.Point(13, 300);
+            this.tb_wordinput.Location = new System.Drawing.Point(15, 400);
+            this.tb_wordinput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tb_wordinput.Name = "tb_wordinput";
-            this.tb_wordinput.Size = new System.Drawing.Size(100, 23);
+            this.tb_wordinput.Size = new System.Drawing.Size(114, 27);
             this.tb_wordinput.TabIndex = 14;
             // 
             // lbl_words
             // 
             this.lbl_words.AutoSize = true;
             this.lbl_words.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_words.Location = new System.Drawing.Point(46, 6);
+            this.lbl_words.Location = new System.Drawing.Point(53, 8);
             this.lbl_words.Name = "lbl_words";
-            this.lbl_words.Size = new System.Drawing.Size(67, 25);
+            this.lbl_words.Size = new System.Drawing.Size(80, 30);
             this.lbl_words.TabIndex = 9;
             this.lbl_words.Text = "Words";
             // 
             // pb_finite
             // 
             this.pb_finite.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_finite.Location = new System.Drawing.Point(92, 360);
+            this.pb_finite.Location = new System.Drawing.Point(104, 480);
+            this.pb_finite.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_finite.Name = "pb_finite";
-            this.pb_finite.Size = new System.Drawing.Size(40, 36);
+            this.pb_finite.Size = new System.Drawing.Size(50, 48);
             this.pb_finite.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pb_finite.TabIndex = 13;
             this.pb_finite.TabStop = false;
@@ -134,9 +141,10 @@
             // pb_dfa
             // 
             this.pb_dfa.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_dfa.Location = new System.Drawing.Point(27, 360);
+            this.pb_dfa.Location = new System.Drawing.Point(30, 480);
+            this.pb_dfa.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_dfa.Name = "pb_dfa";
-            this.pb_dfa.Size = new System.Drawing.Size(40, 36);
+            this.pb_dfa.Size = new System.Drawing.Size(51, 48);
             this.pb_dfa.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pb_dfa.TabIndex = 12;
             this.pb_dfa.TabStop = false;
@@ -145,9 +153,9 @@
             // 
             this.lbl_finite.AutoSize = true;
             this.lbl_finite.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_finite.Location = new System.Drawing.Point(87, 336);
+            this.lbl_finite.Location = new System.Drawing.Point(99, 448);
             this.lbl_finite.Name = "lbl_finite";
-            this.lbl_finite.Size = new System.Drawing.Size(53, 21);
+            this.lbl_finite.Size = new System.Drawing.Size(65, 28);
             this.lbl_finite.TabIndex = 11;
             this.lbl_finite.Text = "Finite";
             this.lbl_finite.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -156,9 +164,9 @@
             // 
             this.lbl_dfa.AutoSize = true;
             this.lbl_dfa.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_dfa.Location = new System.Drawing.Point(27, 336);
+            this.lbl_dfa.Location = new System.Drawing.Point(31, 448);
             this.lbl_dfa.Name = "lbl_dfa";
-            this.lbl_dfa.Size = new System.Drawing.Size(40, 21);
+            this.lbl_dfa.Size = new System.Drawing.Size(50, 28);
             this.lbl_dfa.TabIndex = 10;
             this.lbl_dfa.Text = "DFA";
             this.lbl_dfa.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -168,48 +176,52 @@
             this.panel2.Controls.Add(this.rtb_filecontents);
             this.panel2.Controls.Add(this.lbl_fileloaded);
             this.panel2.Controls.Add(this.btn_browse);
-            this.panel2.Location = new System.Drawing.Point(740, 12);
+            this.panel2.Location = new System.Drawing.Point(846, 16);
+            this.panel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(226, 401);
+            this.panel2.Size = new System.Drawing.Size(258, 535);
             this.panel2.TabIndex = 9;
             // 
             // rtb_filecontents
             // 
-            this.rtb_filecontents.Location = new System.Drawing.Point(3, 34);
+            this.rtb_filecontents.Location = new System.Drawing.Point(3, 45);
+            this.rtb_filecontents.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.rtb_filecontents.Name = "rtb_filecontents";
-            this.rtb_filecontents.Size = new System.Drawing.Size(220, 362);
+            this.rtb_filecontents.Size = new System.Drawing.Size(251, 481);
             this.rtb_filecontents.TabIndex = 8;
             this.rtb_filecontents.Text = "";
             // 
             // lbl_fileloaded
             // 
             this.lbl_fileloaded.AutoSize = true;
-            this.lbl_fileloaded.Location = new System.Drawing.Point(85, 9);
+            this.lbl_fileloaded.Location = new System.Drawing.Point(97, 12);
             this.lbl_fileloaded.Name = "lbl_fileloaded";
             this.lbl_fileloaded.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.lbl_fileloaded.Size = new System.Drawing.Size(38, 15);
+            this.lbl_fileloaded.Size = new System.Drawing.Size(50, 20);
             this.lbl_fileloaded.TabIndex = 7;
             this.lbl_fileloaded.Text = "label1";
             // 
             // btn_browse
             // 
-            this.btn_browse.Location = new System.Drawing.Point(3, 3);
+            this.btn_browse.Location = new System.Drawing.Point(3, 4);
+            this.btn_browse.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btn_browse.Name = "btn_browse";
-            this.btn_browse.Size = new System.Drawing.Size(76, 26);
+            this.btn_browse.Size = new System.Drawing.Size(87, 35);
             this.btn_browse.TabIndex = 6;
             this.btn_browse.Text = "Open File";
             this.btn_browse.UseVisualStyleBackColor = true;
             this.btn_browse.Click += new System.EventHandler(this.btn_browse_Click);
             // 
-            // Form1
+            // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(978, 421);
+            this.ClientSize = new System.Drawing.Size(1118, 561);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panel_graph);
-            this.Name = "Form1";
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.Name = "MainForm";
             this.Text = "State Machine Graph";
             this.panel_graph.ResumeLayout(false);
             this.panel_graph.PerformLayout();

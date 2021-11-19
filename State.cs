@@ -10,9 +10,9 @@ namespace ALE2
     {
         public string state_value { get; set; }
         public bool isFinal { get; set; }
-        public Dictionary<State, string> transitions { get; set; }
+        public List<Transition> transitions;
 
-        public State(string value, bool isFinal, Dictionary<State,string> transitions)
+        public State(string value, bool isFinal, List<Transition> transitions)
         {
             this.state_value = value;
             this.isFinal = isFinal;
