@@ -24,6 +24,8 @@ namespace ALE2
             Debug.WriteLine("Initializing Graphviz...");
             this.form = form;
 
+            this.states = new List<State>();
+
             //TODO: Check if dot.exe file exists, if not browse to find it
         }
 
@@ -73,11 +75,11 @@ namespace ALE2
 
             // Do not read any commented lines
             string graph_contents = string.Join("", file_contents.Where(line => !line.StartsWith('#')));
+            string[] graph_contents_lines = file_contents;
 
-            
-            // TODO: Check if contents are in dot language and if not convert
+            // Check if contents are in dot language and parse with the corresponding method
             if (!graph_contents.StartsWith("digraph") && !graph_contents.StartsWith("graph"))
-                graph_contents = ParseFile(graph_contents);
+                graph_contents = ParseFile(graph_contents_lines);
             else
                 graph_contents = ParseDotFile(graph_contents);
 
@@ -87,22 +89,60 @@ namespace ALE2
             return bm;
         }
 
-        private string ParseFile(string contents)
+        private string ParseFile(string[] contents)
         {
             string dot_contents = "";
 
-            this.alphabet = contents.Substring(contents.IndexOf("alphabet"), contents.IndexOf("states"))
-                .Remove(contents.IndexOf("alphabet"), "alphabet:".Length).Trim();
+            int sfrom = 0;
+            int sto = 0;
 
-            string[] states = contents.Substring(contents.IndexOf("states"), contents.IndexOf("final"))
-                .Trim().Split(',');
-
-            foreach (string state in states)
+            // Recreates the string array without the commented lines
+            foreach (string line in contents) //string line in contents)
             {
-                Debug.WriteLine(state);
-            }
-            // TODO: add states to objects
+                if (line.StartsWith('#'))
+                    continue;
+                else if (line.StartsWith("alphabet"))
+                {
+                    sfrom = line.IndexOf("alphabet") + "alphabet:".Length;
+                    this.alphabet = line.Substring(sfrom, line.Length - sfrom).Trim();
+                    Debug.WriteLine($"Alphabet parsed: {this.alphabet}");
+                }
+                else if (line.StartsWith("states"))
+                {
+                    // Get states (name only)
+                    sfrom = line.IndexOf("states") + "states:".Length;
+                    string[] states = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+                    foreach (string state in states)
+                    {
+                        this.states.Add(new State(state, false, null)); // A null transitions param will initialise a new List()
+                        Debug.WriteLine($"State Name parsed: {state}");
+                    }
+                }
+                else if (line.StartsWith("final"))
+                {
+                    // Get and set final state
+                    sfrom = line.IndexOf("final") + "final:".Length;
+                    string finalstate = line.Substring(sfrom, line.Length - sfrom).Trim();
+                    this.states.FirstOrDefault(s => s.state_value == finalstate).isFinal = true;
+                    Debug.WriteLine($"Set '{finalstate}' as final state.");
+                }
+                else if (line.StartsWith("transitions"))
+                {
+                    //// Get and set transitions
+                    //sfrom = contents.IndexOf("transitions") + "transitions:".Length;
+                    //sto = contents.IndexOf("end.");
+                    //string transition_string = contents.Substring(sfrom, sto - sfrom).Trim();
 
+                    //string trans_from = transition_string.Split(",")[0];
+                    //string trans_value = transition_string.Split(",")[1].Split("-->")[0];
+                    //string trans_to = transition_string.Split(",")[1].Split("-->")[1];
+
+                    ////Debug.WriteLine($"\nFrom: {trans_from}\nTo {trans_to}\nValue {trans_value}");
+                    //Debug.WriteLine(transition_string.Split(",")[6]);
+                }
+            }
+
+            // TODO: add states to objects
             return ConvertToDot(dot_contents);
         }
 

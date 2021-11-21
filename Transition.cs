@@ -8,15 +8,15 @@ namespace ALE2
 {
     public class Transition
     {
-        public State startsFrom;
-        public State pointsTo;
-        public string label;
+        public State startsFrom { get; set; }
+        public State pointsTo { get; set; }
+        public string label { get; set; }
 
         public Transition(State startsfrom, State pointsto, string label)
         {
             this.startsFrom = startsfrom;
             this.pointsTo = pointsto;
             this.label = label;
-        }        
+        }
     }
 }
