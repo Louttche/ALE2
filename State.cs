@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ALE2
 {
@@ -25,8 +26,18 @@ namespace ALE2
 
         public void AddTransition(Transition transition)
         {
-            // TODO: Validation checks
-            this.transitions.Add(transition);
+            try
+            {
+                this.transitions.Add(transition);
+            }
+            catch (NullReferenceException ne)
+            {
+                Debug.WriteLine("Adding Transition gave a NullReferenceException - " + ne);
+            }
+            finally
+            {
+                //Debug.WriteLine($"{this.state_value}: Transition added.\t{transition.label}: {transition.startsFrom.state_value} --> {transition.pointsTo.state_value}");
+            }
         }
 
         public override bool Equals(object obj)

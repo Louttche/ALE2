@@ -14,6 +14,9 @@ namespace ALE2
 
         public Transition(State startsfrom, State pointsto, string label)
         {
+            if (startsfrom == null || pointsto == null)
+                return;
+
             this.startsFrom = startsfrom;
             this.pointsTo = pointsto;
             this.label = label;

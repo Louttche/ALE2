@@ -28,8 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.panel_graph = new System.Windows.Forms.Panel();
             this.pb_graph = new System.Windows.Forms.PictureBox();
+            this.btn_refresh = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.rtb_words = new System.Windows.Forms.RichTextBox();
             this.pb_wordinput = new System.Windows.Forms.PictureBox();
@@ -41,8 +43,8 @@
             this.lbl_dfa = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.rtb_filecontents = new System.Windows.Forms.RichTextBox();
-            this.lbl_fileloaded = new System.Windows.Forms.Label();
             this.btn_browse = new System.Windows.Forms.Button();
+            this.toolTip_info = new System.Windows.Forms.ToolTip(this.components);
             this.panel_graph.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pb_graph)).BeginInit();
             this.panel1.SuspendLayout();
@@ -73,6 +75,16 @@
             this.pb_graph.TabIndex = 2;
             this.pb_graph.TabStop = false;
             // 
+            // btn_refresh
+            // 
+            this.btn_refresh.Location = new System.Drawing.Point(85, 501);
+            this.btn_refresh.Name = "btn_refresh";
+            this.btn_refresh.Size = new System.Drawing.Size(94, 29);
+            this.btn_refresh.TabIndex = 3;
+            this.btn_refresh.Text = "Refresh";
+            this.btn_refresh.UseVisualStyleBackColor = true;
+            this.btn_refresh.Click += new System.EventHandler(this.btn_refresh_Click);
+            // 
             // panel1
             // 
             this.panel1.Controls.Add(this.rtb_words);
@@ -101,17 +113,17 @@
             // pb_wordinput
             // 
             this.pb_wordinput.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_wordinput.Location = new System.Drawing.Point(134, 395);
+            this.pb_wordinput.Location = new System.Drawing.Point(129, 395);
             this.pb_wordinput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_wordinput.Name = "pb_wordinput";
-            this.pb_wordinput.Size = new System.Drawing.Size(42, 40);
+            this.pb_wordinput.Size = new System.Drawing.Size(43, 40);
             this.pb_wordinput.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pb_wordinput.TabIndex = 15;
             this.pb_wordinput.TabStop = false;
             // 
             // tb_wordinput
             // 
-            this.tb_wordinput.Location = new System.Drawing.Point(15, 400);
+            this.tb_wordinput.Location = new System.Drawing.Point(11, 400);
             this.tb_wordinput.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tb_wordinput.Name = "tb_wordinput";
             this.tb_wordinput.Size = new System.Drawing.Size(114, 27);
@@ -130,18 +142,19 @@
             // pb_finite
             // 
             this.pb_finite.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_finite.Location = new System.Drawing.Point(104, 480);
+            this.pb_finite.Location = new System.Drawing.Point(103, 475);
             this.pb_finite.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_finite.Name = "pb_finite";
             this.pb_finite.Size = new System.Drawing.Size(50, 48);
             this.pb_finite.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pb_finite.TabIndex = 13;
             this.pb_finite.TabStop = false;
+            this.pb_finite.Visible = false;
             // 
             // pb_dfa
             // 
             this.pb_dfa.Image = global::ALE2.Properties.Resources.tick;
-            this.pb_dfa.Location = new System.Drawing.Point(30, 480);
+            this.pb_dfa.Location = new System.Drawing.Point(29, 475);
             this.pb_dfa.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.pb_dfa.Name = "pb_dfa";
             this.pb_dfa.Size = new System.Drawing.Size(51, 48);
@@ -153,18 +166,19 @@
             // 
             this.lbl_finite.AutoSize = true;
             this.lbl_finite.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_finite.Location = new System.Drawing.Point(99, 448);
+            this.lbl_finite.Location = new System.Drawing.Point(98, 443);
             this.lbl_finite.Name = "lbl_finite";
             this.lbl_finite.Size = new System.Drawing.Size(65, 28);
             this.lbl_finite.TabIndex = 11;
             this.lbl_finite.Text = "Finite";
             this.lbl_finite.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lbl_finite.Visible = false;
             // 
             // lbl_dfa
             // 
             this.lbl_dfa.AutoSize = true;
             this.lbl_dfa.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_dfa.Location = new System.Drawing.Point(31, 448);
+            this.lbl_dfa.Location = new System.Drawing.Point(30, 443);
             this.lbl_dfa.Name = "lbl_dfa";
             this.lbl_dfa.Size = new System.Drawing.Size(50, 28);
             this.lbl_dfa.TabIndex = 10;
@@ -173,8 +187,8 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.btn_refresh);
             this.panel2.Controls.Add(this.rtb_filecontents);
-            this.panel2.Controls.Add(this.lbl_fileloaded);
             this.panel2.Controls.Add(this.btn_browse);
             this.panel2.Location = new System.Drawing.Point(846, 16);
             this.panel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -187,19 +201,9 @@
             this.rtb_filecontents.Location = new System.Drawing.Point(3, 45);
             this.rtb_filecontents.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.rtb_filecontents.Name = "rtb_filecontents";
-            this.rtb_filecontents.Size = new System.Drawing.Size(251, 481);
+            this.rtb_filecontents.Size = new System.Drawing.Size(251, 451);
             this.rtb_filecontents.TabIndex = 8;
             this.rtb_filecontents.Text = "";
-            // 
-            // lbl_fileloaded
-            // 
-            this.lbl_fileloaded.AutoSize = true;
-            this.lbl_fileloaded.Location = new System.Drawing.Point(97, 12);
-            this.lbl_fileloaded.Name = "lbl_fileloaded";
-            this.lbl_fileloaded.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.lbl_fileloaded.Size = new System.Drawing.Size(50, 20);
-            this.lbl_fileloaded.TabIndex = 7;
-            this.lbl_fileloaded.Text = "label1";
             // 
             // btn_browse
             // 
@@ -232,7 +236,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.pb_finite)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_dfa)).EndInit();
             this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -241,18 +244,19 @@
         private System.Windows.Forms.Panel panel_graph;
         private System.Windows.Forms.PictureBox pb_graph;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.PictureBox pb_finite;
-        private System.Windows.Forms.PictureBox pb_dfa;
-        private System.Windows.Forms.Label lbl_finite;
-        private System.Windows.Forms.Label lbl_dfa;
         private System.Windows.Forms.Label lbl_words;
         private System.Windows.Forms.PictureBox pb_wordinput;
         private System.Windows.Forms.TextBox tb_wordinput;
         private System.Windows.Forms.RichTextBox rtb_words;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.RichTextBox rtb_filecontents;
-        private System.Windows.Forms.Label lbl_fileloaded;
         private System.Windows.Forms.Button btn_browse;
+        private System.Windows.Forms.Button btn_refresh;
+        private System.Windows.Forms.ToolTip toolTip_info;
+        private System.Windows.Forms.PictureBox pb_finite;
+        private System.Windows.Forms.PictureBox pb_dfa;
+        private System.Windows.Forms.Label lbl_finite;
+        private System.Windows.Forms.Label lbl_dfa;
     }
 }
 

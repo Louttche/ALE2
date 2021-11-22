@@ -78,5 +78,5 @@ D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\n
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\graphviz_example.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\is_DFA.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\is_NDFA.txt
-D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\graphviz_example_large.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.MainForm.resources
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\graphviz_finite_example.txt

@@ -202,7 +202,7 @@
     <None Update="files\graphviz_example.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="files\graphviz_example_large.txt">
+    <None Update="files\graphviz_finite_example.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="files\is_DFA.txt">
