@@ -26,17 +26,11 @@ namespace ALE2
 
         public void AddTransition(Transition transition)
         {
-            try
-            {
+            try {
                 this.transitions.Add(transition);
             }
-            catch (NullReferenceException ne)
-            {
+            catch (NullReferenceException ne) {
                 Debug.WriteLine("Adding Transition gave a NullReferenceException - " + ne);
-            }
-            finally
-            {
-                //Debug.WriteLine($"{this.state_value}: Transition added.\t{transition.label}: {transition.startsFrom.state_value} --> {transition.pointsTo.state_value}");
             }
         }
 

@@ -214,10 +214,8 @@ namespace ALE2
             return CreateDotFromParsedFile("");
         }
 
-        private string CreateDotFromParsedFile(string name)
+        private string CreateDotFromParsedFile(string name = "example_name")
         {
-            if (name is null || name.Length <= 0)
-                name = "example_name";
 
             // TODO: Create dot file from parsed values
             string dot_contents = $"digraph {name}" + "{rankdir=LR;";

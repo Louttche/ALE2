@@ -54,7 +54,10 @@ namespace ALE2
                 this.graph.bm_graph = this.graph.GetGraphFromFile(this.graph_path);
 
                 if (this.graph.bm_graph != null)
+                {
                     pb_graph.Image = this.graph.bm_graph;
+                    DisplayWords(this.graph.words);
+                }
             }
         }
 
@@ -68,6 +71,22 @@ namespace ALE2
                 this.graph_dot = this.graph.ParseContent(rtb_filecontents.Lines);
 
             pb_graph.Image = Graph.Run(this.graph_dot);
+            if (this.graph.words != null)
+                DisplayWords(this.graph.words);
+        }
+
+        private void DisplayWords(Dictionary<string, bool> words)
+        {
+            rtb_words.Text = "";
+            foreach (KeyValuePair<string, bool> word in words)
+                rtb_words.Text += word.Key + " : " + word.Value + "\n";
+
+            // TODO: Check if file is wrong
+        }
+
+        private void CheckWord(string word)
+        {
+            // TODO: Check custom word input from user
         }
     }
 }
