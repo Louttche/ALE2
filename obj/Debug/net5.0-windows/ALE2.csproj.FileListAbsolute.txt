@@ -80,3 +80,9 @@ D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\n
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\is_NDFA.txt
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-windows\ALE2.MainForm.resources
 D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\graphviz_finite_example.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\dfa1.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\dfa2.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\dfa3.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\nfa1.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\nfa2.txt
+D:\OneDrive\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\nfa3.txt

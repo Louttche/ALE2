@@ -15,7 +15,7 @@ namespace ALE2
 
         public string alphabet { get; set; }    // alphabet: wo
         public List<State> states { get; set; } // states: 1,2,3
-        public State final_state { get; set; }  // final: 3
+        public List<State> final_states { get; set; }  // final: 3
         public bool isDFA { get; set; } // dfa: n
         public bool isFinite { get; set; }  // finite: n
         public bool isDFA_file { get; set; } // what does the file say
@@ -31,6 +31,7 @@ namespace ALE2
             this.states = new List<State>();
             this.words = new Dictionary<string, bool>();
             this.all_transitions = new List<Transition>();
+            this.final_states = new List<State>();
 
             this.bm_graph = null;
 
@@ -129,12 +130,16 @@ namespace ALE2
                 }
                 // Get and set final state
                 else if (line.StartsWith("final"))
-                {
+                {//final: q2,q4
                     sfrom = line.IndexOf("final") + "final:".Length;
-                    string finalstate = line.Substring(sfrom, line.Length - sfrom).Trim();
-                    this.states.FirstOrDefault(s => s.state_value == finalstate).isFinal = true;
-                    this.final_state = this.states.FirstOrDefault(s => s.state_value == finalstate);
-                    Debug.WriteLine($"Set '{finalstate}' as final state.");
+                    string[] finalstates = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+
+                    foreach (State state in this.states.Where(s => finalstates.Contains(s.state_value)))
+                    {
+                        state.isFinal = true;
+                        this.final_states.Add(state);
+                        Debug.WriteLine($"Set '{state.state_value}' as final state.");
+                    }
                 }
                 // Get and set transitions
                 else if (line.StartsWith("transitions"))
@@ -158,7 +163,10 @@ namespace ALE2
                         if (transition != null)
                         {
                             tfrom.AddTransition(transition);
-                            tTo.AddTransition(transition);
+                            // Only add to the destination state if its not a self-loop transition
+                            // (or else same state gets duplicate transition in list)
+                            if (!tfrom.Equals(tTo))
+                                tTo.AddTransition(transition);
 
                             all_transitions.Add(transition);
                         }
@@ -221,8 +229,10 @@ namespace ALE2
             // TODO: Create dot file from parsed values
             string dot_contents = $"digraph {name}" + "{rankdir=LR;";
 
-            // set final state
-            dot_contents += "node [shape = doublecircle]; " + this.final_state.state_value + ";";
+            // set final state in drawing
+            foreach (State finalstate in this.final_states)
+                dot_contents += "node [shape = doublecircle]; " + finalstate.state_value + ";";
+
             dot_contents += "node [shape = circle];";
 
             // set transitions
@@ -253,7 +263,7 @@ namespace ALE2
             // For DFA each state should have transitions going out from itself for each  unique letter from the alphabet
             var nr_unique_letters = new HashSet<char>(this.alphabet);
             bool hasNDFATransition = this.states.Any(s => s.transitions.Where(t => t.startsFrom == s).Count() != nr_unique_letters.Count);
-
+            
             if (hasEmptyChar || hasNDFATransition)
                 this.isDFA = false;
             else
