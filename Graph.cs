@@ -100,6 +100,7 @@ namespace ALE2
 
         public string ParseContent(string[] contents)
         {
+            //string name_of_file = "";
             int sfrom = 0;
             int line_index = -1;
             foreach (string line in contents)
@@ -211,12 +212,12 @@ namespace ALE2
                 }
             }
 
-            return CreateDotFromParsedFile("");
+            // TODO: Assume name will always be in the first line of the file (miuns the '#' character in the start)
+            return CreateDotFromParsedFile();
         }
 
         private string CreateDotFromParsedFile(string name = "example_name")
         {
-
             // TODO: Create dot file from parsed values
             string dot_contents = $"digraph {name}" + "{rankdir=LR;";
 
@@ -249,8 +250,9 @@ namespace ALE2
             // Check if graph is DFA
             // For DFA there are no empty/e characters
             bool hasEmptyChar = this.all_transitions.Any(t => t.label.Length == 0 || t.label == "_");
-            // For DFA each state should have transitions going to and from the state for each input (transition number for each state = alphabet length * 2)
-            bool hasNDFATransition = this.states.Any(s => s.transitions.Count != (this.alphabet.Length * 2));
+            // For DFA each state should have transitions going out from itself for each  unique letter from the alphabet
+            var nr_unique_letters = new HashSet<char>(this.alphabet);
+            bool hasNDFATransition = this.states.Any(s => s.transitions.Where(t => t.startsFrom == s).Count() != nr_unique_letters.Count);
 
             if (hasEmptyChar || hasNDFATransition)
                 this.isDFA = false;
