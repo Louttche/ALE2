@@ -20,6 +20,7 @@ namespace ALE2
 
         // UI Elements
         public RichTextBox ui_rtb_filecontents;
+        public RichTextBox ui_rtb_words;
         public PictureBox ui_pb_graph;
         public PictureBox ui_pb_dfa;
         public PictureBox ui_pb_finite;
@@ -34,11 +35,15 @@ namespace ALE2
 
             // Initialize global ui
             ui_rtb_filecontents = rtb_filecontents;
+            ui_rtb_words = rtb_words;
             ui_pb_graph = pb_graph;
             ui_pb_dfa = pb_dfa;
-            ui_pb_finite = pb_finite;
+            ui_pb_finite = pb_finite;                                                                                                                                                                                                         
 
             ui_tooltip_info = toolTip_info;
+
+            pb_wordinput.Visible = false;
+            tb_wordinput.Enabled = false;
         }
 
         private void btn_browse_Click(object sender, EventArgs e)
@@ -77,16 +82,26 @@ namespace ALE2
 
         private void DisplayWords(Dictionary<string, bool> words)
         {
+            // Clear textbox with words
             rtb_words.Text = "";
-            foreach (KeyValuePair<string, bool> word in words)
-                rtb_words.Text += word.Key + " : " + word.Value + "\n";
-
-            // TODO: Check if file is wrong
+            // Check words + display them
+            this.graph.CheckWords();
+            // Make manual word input available
+            tb_wordinput.Enabled = true;
         }
 
-        private void CheckWord(string word)
+        private void tb_wordinput_TextChanged(object sender, EventArgs e)
         {
-            // TODO: Check custom word input from user
+            if (tb_wordinput.Text.Length > 0)
+            {
+                pb_wordinput.Visible = true;
+                // Check inputed word
+                if (this.graph.CheckWord(tb_wordinput.Text))
+                    pb_wordinput.Image = new Bitmap(Properties.Resources.tick);
+                else
+                    pb_wordinput.Image = new Bitmap(Properties.Resources.x);
+            } else
+                pb_wordinput.Visible = false;
         }
     }
 }

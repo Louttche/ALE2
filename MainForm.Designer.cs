@@ -128,6 +128,7 @@
             this.tb_wordinput.Name = "tb_wordinput";
             this.tb_wordinput.Size = new System.Drawing.Size(114, 27);
             this.tb_wordinput.TabIndex = 14;
+            this.tb_wordinput.TextChanged += new System.EventHandler(this.tb_wordinput_TextChanged);
             // 
             // lbl_words
             // 

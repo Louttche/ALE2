@@ -23,6 +23,8 @@ namespace ALE2
         public Dictionary<string, bool> words { get; set; } // words: word, y
         public List<Transition> all_transitions { get; set; } // all transitions
 
+        private Stack<State> stateStack = new Stack<State>();
+
         public Graph(MainForm form)
         {
             Debug.WriteLine("Initializing Graphviz...");
@@ -282,6 +284,69 @@ namespace ALE2
 
             // Set tick/x image based on truth value
             this.form.ui_pb_finite.Image = this.isFinite ? new Bitmap(Properties.Resources.tick) : new Bitmap(Properties.Resources.x);
+            return false;
+        }
+
+        public void CheckWords()
+        {
+            int rtb_index = 0;
+            foreach (KeyValuePair<string, bool> word in this.words)
+            {
+                form.ui_rtb_words.AppendText(word.Key + " : " + word.Value + "\n");
+                form.ui_rtb_words.SelectionStart = rtb_index;
+                form.ui_rtb_words.SelectionLength = word.Key.Length;
+
+                // Check if word is accepted
+                bool accepted = CheckWord(word.Key, 0);
+                if (accepted)
+                    form.ui_rtb_words.SelectionColor = Color.Green;
+                else
+                    form.ui_rtb_words.SelectionColor = Color.Red;
+
+                rtb_index = form.ui_rtb_words.Text.Length;
+
+                // TODO: Check if file is wrong
+                if (accepted != word.Value) {
+                    form.ui_rtb_words.SelectionStart = rtb_index - (word.Value.ToString().Length + 1);
+                    form.ui_rtb_words.SelectionLength = word.Value.ToString().Length;
+                    form.ui_rtb_words.SelectionColor = Color.Red;
+                }
+            }
+        }
+
+        public bool CheckWord(string word, int letter_index = 0)
+        {
+            // If starting new word, clear stack and push first state
+            if (letter_index == 0)
+            {
+                this.stateStack.Clear();
+                this.stateStack.Push(this.states[0]);
+            }
+
+            // Check transitions from current state (state on top of stack)
+            List<Transition> possibleTransitions = this.stateStack.Peek().FindTransitionsByValue(word[letter_index].ToString());
+
+            if (possibleTransitions != null && possibleTransitions.Count > 0)
+            {
+                foreach (Transition pt in possibleTransitions)
+                {
+                    this.stateStack.Push(pt.pointsTo);
+
+                    // Check if last letter
+                    if (letter_index == word.Length - 1) {
+                        if (this.stateStack.Peek().isFinal)
+                            return true; // If current state is final, accept word
+                        else
+                        {
+                            this.stateStack.Pop(); // pop stack to go back to previous parent
+                            continue; // check other possible transitions
+                        }
+                    }
+                    else
+                        return CheckWord(word, ++letter_index);
+                }
+            }
+
             return false;
         }
     }

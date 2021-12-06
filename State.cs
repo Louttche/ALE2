@@ -34,12 +34,16 @@ namespace ALE2
             }
         }
 
+        public List<Transition> FindTransitionsByValue(string label_value)
+        {
+            return transitions.Where(t => t.label == label_value).ToList();
+        }
+
         public override bool Equals(object obj)
         {
             return obj is State state &&
                    state_value == state.state_value;
         }
-
         public override int GetHashCode()
         {
             return HashCode.Combine(state_value);

@@ -21,5 +21,25 @@ namespace ALE2
             this.pointsTo = pointsto;
             this.label = label;
         }
+
+        public override bool Equals(Object obj)
+        {
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+                return false;
+            else
+            {
+                Transition t = (Transition)obj;
+                return (this.startsFrom == t.startsFrom) && (this.pointsTo == t.pointsTo) && (this.label == t.label);
+            }
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(startsFrom, pointsTo, label);
+        }
+
+        public override string ToString()
+        {
+            return String.Format($"Transition {this.label}: {this.startsFrom.state_value} --> {this.pointsTo.state_value}");
+        }
     }
 }
