@@ -16,7 +16,10 @@ namespace ALE2
     {
         public Graph graph;
         private string graph_path;
+        public string[] graph_file_contents;
         public string graph_dot;
+
+        public NodeRegexManager regexManager;
 
         // UI Elements
         public RichTextBox ui_rtb_filecontents;
@@ -38,7 +41,7 @@ namespace ALE2
             ui_rtb_words = rtb_words;
             ui_pb_graph = pb_graph;
             ui_pb_dfa = pb_dfa;
-            ui_pb_finite = pb_finite;                                                                                                                                                                                                         
+            ui_pb_finite = pb_finite;                                                                                                                                                                                              
 
             ui_tooltip_info = toolTip_info;
 
@@ -57,6 +60,8 @@ namespace ALE2
                 this.graph = new Graph(this);
                 this.graph_path = file.FileName;
                 this.graph.bm_graph = this.graph.GetGraphFromFile(this.graph_path);
+                
+                this.graph.DebugParsedValues();
 
                 if (this.graph.bm_graph != null)
                 {
@@ -72,8 +77,10 @@ namespace ALE2
 
             if (rtb_filecontents.Text.StartsWith("digraph") || rtb_filecontents.Text.StartsWith("graph"))
                 this.graph_dot = rtb_filecontents.Text;
+            else if (rtb_filecontents.Text.StartsWith("regex") || rtb_filecontents.Text.StartsWith("# Regex"))
+                this.graph_dot = this.graph.ParseRegexFile(rtb_filecontents.Lines);
             else
-                this.graph_dot = this.graph.ParseContent(rtb_filecontents.Lines);
+                this.graph_dot = this.graph.ParseDefaultFile(rtb_filecontents.Lines);
 
             pb_graph.Image = Graph.Run(this.graph_dot);
             if (this.graph.words != null)
@@ -102,6 +109,14 @@ namespace ALE2
                     pb_wordinput.Image = new Bitmap(Properties.Resources.x);
             } else
                 pb_wordinput.Visible = false;
+        }
+
+        private void cb_filecontents_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cb_filecontents.Checked)
+                rtb_filecontents.Text = this.graph_dot;
+            else
+                rtb_filecontents.Text = String.Join("\n", this.graph_file_contents);
         }
     }
 }

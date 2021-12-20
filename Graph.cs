@@ -12,7 +12,6 @@ namespace ALE2
     {
         private MainForm form;
         public Bitmap bm_graph;
-
         public string alphabet { get; set; }    // alphabet: wo
         public List<State> states { get; set; } // states: 1,2,3
         public List<State> final_states { get; set; }  // final: 3
@@ -25,6 +24,9 @@ namespace ALE2
 
         private Stack<State> stateStack = new Stack<State>();
 
+        // For Regex
+        private int state_counter;
+
         public Graph(MainForm form)
         {
             Debug.WriteLine("Initializing Graphviz...");
@@ -34,10 +36,11 @@ namespace ALE2
             this.words = new Dictionary<string, bool>();
             this.all_transitions = new List<Transition>();
             this.final_states = new List<State>();
+            this.alphabet = "";
 
             this.bm_graph = null;
 
-            //TODO: Check if dot.exe file exists, if not browse to find it
+            this.state_counter = 0;
         }
 
         public static Bitmap Run(string dot)
@@ -80,18 +83,22 @@ namespace ALE2
         {
             Bitmap bm = null;
             string[] file_contents = File.ReadAllLines(@path);
-
-            // Display the contents in the ui text box
-            this.form.ui_rtb_filecontents.Lines = file_contents;
-
             // Do not read any commented lines + join all lines in 1 string
             string graph_contents = string.Join("", file_contents.Where(line => !line.StartsWith('#')));
 
-            // Check if contents are in dot language and parse with the corresponding method
-            if (!graph_contents.StartsWith("digraph") && !graph_contents.StartsWith("graph"))
-                graph_contents = ParseContent(file_contents); // pass content as multi-line
-            else
+            // Display the contents in the ui text box
+            this.form.ui_rtb_filecontents.Lines = file_contents;
+            // Store them to be able to switch back to it in file contents textbox
+            this.form.graph_file_contents = file_contents;
+
+            // Check what type of file it is (default, dot, regex)
+
+            if (graph_contents.StartsWith("regex"))
+                graph_contents = ParseRegexFile(file_contents); // pass content as multi-line
+            else if (graph_contents.StartsWith("digraph") || graph_contents.StartsWith("graph"))
                 graph_contents = ParseDotFile(graph_contents);
+            else // Default format (Given by ale2 course)
+                graph_contents = ParseDefaultFile(file_contents); // pass content as multi-line
 
             if (graph_contents != null)
                 bm = Graph.Run(graph_contents);
@@ -101,7 +108,152 @@ namespace ALE2
             return bm;
         }
 
-        public string ParseContent(string[] contents)
+        public string ParseRegexFile(string[] contents)
+        {
+            form.regexManager = new NodeRegexManager();
+
+            int line_index = -1;
+            foreach (string line in contents)
+            {
+                line_index++;
+                if (line.StartsWith('#'))
+                    continue;
+                // Parse regex expression
+                else if (line.StartsWith("regex"))
+                {
+                    line.Trim();
+                    form.regexManager.formula = line.Split(":")[1].Trim();
+                    // Parse nodes with their children
+                    form.regexManager.AddNode(form.regexManager.formula);
+
+                    // parse to graph properties + create dot
+                    state_counter = 0;
+                    ParseRegexContents(form.regexManager.operators[0]); // sets states + transitions
+
+                    // In regex, last state is always final state
+                    this.final_states.Add(states.Last());
+                    // Set the alphabet (operants)
+                    foreach (OperantRegex letter in form.regexManager.operants)
+                    { this.alphabet += letter.Value; }
+                }
+                //Get whether or not the file says the graph is a dfa
+                else if (line.StartsWith("dfa"))
+                {
+                    line.Trim();
+                    isDFA_file = line.Split(":")[1].Trim() == "y" ? true : false;
+                    isDFA = CheckDFA();
+
+                    if (isDFA != isDFA_file)
+                                            {
+                        form.ui_pb_dfa.BackColor = Color.Gray;
+                        form.ui_tooltip_info.SetToolTip(form.ui_pb_dfa, "File is wrong.");
+                    }
+                    else
+                    {
+                        form.ui_pb_dfa.BackColor = Color.Transparent;
+                        form.ui_tooltip_info.SetToolTip(form.ui_pb_dfa, "");
+                    }
+                }
+                // Get whether or not the file says the graph is finite
+                else if (line.StartsWith("finite"))
+                {
+                    isFinite_file = line.Split(":")[1].Trim() == "y" ? true : false;
+                    isFinite = CheckFinite();
+
+                    if (isFinite != isFinite_file)
+                    {
+                        form.ui_pb_finite.BackColor = Color.Gray;
+                        form.ui_tooltip_info.SetToolTip(form.ui_pb_finite, "File is wrong.");
+                    }
+                    else
+                    {
+                        form.ui_pb_finite.BackColor = Color.Transparent;
+                        form.ui_tooltip_info.SetToolTip(form.ui_pb_finite, "");
+                    }
+                }
+                // Get words
+                else if (line.StartsWith("words"))
+                {
+                    for (int i = line_index + 1; i < contents.Length; i++)
+                    {
+                        if (contents[i] == "end.")
+                            break;
+
+                        if (contents[i].Length > 0)
+                            words[contents[i].Split(",")[0].Trim()] = contents[i].Split(",")[1].Trim() == "y" ? true : false;
+                    }
+                }
+            }
+
+            return CreateDotFromParsedFile(); //form.regexManager.formula.Trim()
+        }
+
+        private void ParseRegexContents(OperatorRegex parent_node)
+        {
+            // If root node
+            if (form.regexManager.operators[0].ID == parent_node.ID)
+            {
+                // Add starting state
+                State s0 = new State($"q{state_counter++}", false, null);
+                states.Add(s0);
+            }
+
+            switch (parent_node.Value)
+            {
+                case '.':
+                    // Create needed states
+                    State s1 = new State($"q{state_counter++}", false, null);
+                    State s2 = new State($"q{state_counter++}", false, null);
+
+                    if (parent_node.Left_child != null)
+                    {
+                        if (parent_node.Left_child is OperantRegex)
+                        {
+                            // Create transition from last open state to new s1 state
+                            State open_state = states.Last();
+                            
+                            Transition l_transition = new Transition(open_state, s1, parent_node.Left_child.Value.ToString());
+                            open_state.AddTransition(l_transition);
+                            s1.AddTransition(l_transition);
+                            all_transitions.Add(l_transition);
+
+                            states.Add(s1);
+                        }
+                        else
+                            ParseRegexContents((OperatorRegex) parent_node.Left_child);
+                    }
+
+                    if (parent_node.Right_child != null)
+                    {
+                        if (parent_node.Right_child is OperantRegex)
+                        {
+                            // Create transition from last open state to new s1 state
+                            State open_state = states.Last();
+
+                            Transition r_transition = new Transition(open_state, s2, parent_node.Right_child.Value.ToString());
+                            open_state.AddTransition(r_transition);
+                            s2.AddTransition(r_transition);
+                            all_transitions.Add(r_transition);
+
+                            states.Add(s2);
+                        }
+                        else
+                            ParseRegexContents((OperatorRegex)parent_node.Right_child);
+                    }
+
+                    break;
+                case '|':
+                    // TODO: Draw | static layout
+                    break;
+                case '*':
+                    // TODO: Draw * static layout
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public string ParseDefaultFile(string[] contents)
         {
             //string name_of_file = "";
             int sfrom = 0;
@@ -226,24 +378,25 @@ namespace ALE2
             return CreateDotFromParsedFile();
         }
 
-        private string CreateDotFromParsedFile(string name = "example_name")
+        private string CreateDotFromParsedFile(string name = "name")
         {
-            // TODO: Create dot file from parsed values
-            string dot_contents = $"digraph {name}" + "{rankdir=LR;";
+            // Create dot file from parsed values
+            string dot_contents = $"digraph {name} " + "{rankdir=LR;\n\n";
 
             // set final state in drawing
             foreach (State finalstate in this.final_states)
-                dot_contents += "node [shape = doublecircle]; " + finalstate.state_value + ";";
+                dot_contents += "node [shape = doublecircle]; " + finalstate.state_value + ";\n";
 
-            dot_contents += "node [shape = circle];";
+            // set shape for the rest of the states
+            dot_contents += "node [shape = circle];\n";
 
             // set transitions
             foreach (Transition tr in this.all_transitions)
-                dot_contents += $"{tr.startsFrom.state_value} -> {tr.pointsTo.state_value} [label = \"{tr.label}\"];";
+                dot_contents += $"\t{tr.startsFrom.state_value} -> {tr.pointsTo.state_value} [label = \"{tr.label}\"];\n";
 
             // set starting arrow to initial state
-            dot_contents += "node [shape=point,label=\"\"]ENTRY;";
-            dot_contents += $"ENTRY->{this.states[0].state_value} [label=\"Start\"];";
+            dot_contents += "\nnode [shape=point,label=\"\"]ENTRY;\n";
+            dot_contents += $"ENTRY->{this.states[0].state_value} [label=\"Start\"];\n";
 
             dot_contents += "}";
 
@@ -305,7 +458,7 @@ namespace ALE2
 
                 rtb_index = form.ui_rtb_words.Text.Length;
 
-                // TODO: Check if file is wrong
+                // Check if file is wrong
                 if (accepted != word.Value) {
                     form.ui_rtb_words.SelectionStart = rtb_index - (word.Value.ToString().Length + 1);
                     form.ui_rtb_words.SelectionLength = word.Value.ToString().Length;
@@ -323,8 +476,12 @@ namespace ALE2
                 this.stateStack.Push(this.states[0]);
             }
 
+            if (word.Length == 0)
+                word = "_";
+
             // Check transitions from current state (state on top of stack)
-            List<Transition> possibleTransitions = this.stateStack.Peek().FindTransitionsByValue(word[letter_index].ToString());
+            List<Transition> possibleTransitions = this.stateStack.Peek().
+                FindTransitionsByValue(word[letter_index].ToString()).Where(t => t.startsFrom.Equals(this.stateStack.Peek())).ToList();
 
             if (possibleTransitions != null && possibleTransitions.Count > 0)
             {
@@ -348,6 +505,29 @@ namespace ALE2
             }
 
             return false;
+        }
+
+        public void DebugParsedValues()
+        {
+            Debug.WriteLine("-- DEBUG - Parsed Values --");
+
+            Debug.WriteLine($"Alphabet: {this.alphabet}");
+
+            Debug.WriteLine("States:");
+            foreach (State state in this.states)
+            {
+                Debug.WriteLine($"\t- {state.state_value}");
+
+                Debug.WriteLine("\tTransitions:");
+                foreach (Transition tr in state.transitions)
+                    Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_value} --> {tr.pointsTo.state_value}");
+            }
+
+            Debug.WriteLine("Words:");
+            foreach (KeyValuePair<string, Boolean> word in this.words)
+            {
+                Debug.WriteLine($"\t- {word.Key} : {word.Value}");
+            }
         }
     }
 }

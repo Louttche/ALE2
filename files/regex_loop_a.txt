@@ -1,0 +1,14 @@
+# Regex *a
+regex: *(a)
+
+dfa: n
+finite: n
+
+words:
+,y
+a,y
+aa,y
+aaa,y
+aaaa,y
+aaaaa,y
+end.

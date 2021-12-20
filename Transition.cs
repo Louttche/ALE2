@@ -11,6 +11,7 @@ namespace ALE2
         public State startsFrom { get; set; }
         public State pointsTo { get; set; }
         public string label { get; set; }
+        public Boolean isEmpty { get; set; }
 
         public Transition(State startsfrom, State pointsto, string label)
         {
@@ -19,7 +20,17 @@ namespace ALE2
 
             this.startsFrom = startsfrom;
             this.pointsTo = pointsto;
-            this.label = label;
+
+            if (label == "_" || label == "" || label == " ")
+            {
+                isEmpty = true;
+                this.label = Char.ConvertFromUtf32(949); // epsilon;
+            }
+            else
+            {
+                isEmpty = false;
+                this.label = label;
+            }
         }
 
         public override bool Equals(Object obj)
