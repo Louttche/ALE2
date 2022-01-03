@@ -177,4 +177,4 @@ D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\obj\Debug\net5.0-win
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\regex_a.b.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\regex_a_or_b.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\regex_loop_a.txt
-D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\regex_a.b.c.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\regex_a_or_b_or_c.txt

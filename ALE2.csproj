@@ -229,10 +229,10 @@
     <None Update="files\nfa3.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="files\regex_a.b.c.txt">
+    <None Update="files\regex_a.b.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="files\regex_a.b.txt">
+    <None Update="files\regex_a_or_b_or_c.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="files\regex_a_or_b.txt">

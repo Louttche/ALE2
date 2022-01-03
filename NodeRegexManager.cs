@@ -19,7 +19,8 @@ namespace ALE2
         public Dictionary<char, string> infix_notations = new Dictionary<char, string> { // ascii : notation
             { '*', Char.ConvertFromUtf32(8902) },
             { '|', Char.ConvertFromUtf32(8744) },
-            { '.', Char.ConvertFromUtf32(8743) }
+            { '.', Char.ConvertFromUtf32(8743) },
+            //{ '_', Char.ConvertFromUtf32(949) }
         };
 
         public NodeRegexManager()

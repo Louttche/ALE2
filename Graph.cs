@@ -26,6 +26,7 @@ namespace ALE2
 
         // For Regex
         private int state_counter;
+        private State open_state;
 
         public Graph(MainForm form)
         {
@@ -41,6 +42,8 @@ namespace ALE2
             this.bm_graph = null;
 
             this.state_counter = 0;
+            // TODO: Use list or stack
+            this.open_state = new State(null, false, null);
         }
 
         public static Bitmap Run(string dot)
@@ -188,7 +191,7 @@ namespace ALE2
             return CreateDotFromParsedFile(); //form.regexManager.formula.Trim()
         }
 
-        private void ParseRegexContents(OperatorRegex parent_node)
+        private void ParseRegexContents(OperatorRegex parent_node, State o_state = null, State f_state = null)
         {
             // If root node
             if (form.regexManager.operators[0].ID == parent_node.ID)
@@ -202,22 +205,22 @@ namespace ALE2
             {
                 case '.':
                     // Create needed states
-                    State s1 = new State($"q{state_counter++}", false, null);
-                    State s2 = new State($"q{state_counter++}", false, null);
+                    State s1_concat = new State($"q{state_counter++}", false, null);
+                    State s2_concat = new State($"q{state_counter++}", false, null);
 
                     if (parent_node.Left_child != null)
                     {
                         if (parent_node.Left_child is OperantRegex)
                         {
                             // Create transition from last open state to new s1 state
-                            State open_state = states.Last();
+                            this.open_state = states.Last();
                             
-                            Transition l_transition = new Transition(open_state, s1, parent_node.Left_child.Value.ToString());
-                            open_state.AddTransition(l_transition);
-                            s1.AddTransition(l_transition);
+                            Transition l_transition = new Transition(this.open_state, s1_concat, parent_node.Left_child.Value.ToString());
+                            this.open_state.AddTransition(l_transition);
+                            s1_concat.AddTransition(l_transition);
                             all_transitions.Add(l_transition);
 
-                            states.Add(s1);
+                            states.Add(s1_concat);
                         }
                         else
                             ParseRegexContents((OperatorRegex) parent_node.Left_child);
@@ -228,22 +231,104 @@ namespace ALE2
                         if (parent_node.Right_child is OperantRegex)
                         {
                             // Create transition from last open state to new s1 state
-                            State open_state = states.Last();
+                            this.open_state = states.Last();
 
-                            Transition r_transition = new Transition(open_state, s2, parent_node.Right_child.Value.ToString());
-                            open_state.AddTransition(r_transition);
-                            s2.AddTransition(r_transition);
+                            Transition r_transition = new Transition(this.open_state, s2_concat, parent_node.Right_child.Value.ToString());
+                            this.open_state.AddTransition(r_transition);
+                            s2_concat.AddTransition(r_transition);
                             all_transitions.Add(r_transition);
 
-                            states.Add(s2);
+                            states.Add(s2_concat);
                         }
                         else
                             ParseRegexContents((OperatorRegex)parent_node.Right_child);
                     }
 
                     break;
-                case '|':
-                    // TODO: Draw | static layout
+                case '|': //TODO : FIX IT
+
+                    // Get state to grow from
+                    if (o_state == null)
+                        this.open_state = states.Last();
+                    else
+                        this.open_state = o_state;
+
+                    // final state of Choice + its empties
+                    State s5_choice = new State($"q{state_counter++}", false, null);
+                    Transition e2_left = null;
+                    Transition e2_right = null;
+
+                    // Add empty transition connecting final stages (if recursive '|')
+                    if (f_state != null)
+                    {
+                        Transition f_empty = new Transition(s5_choice, f_state, "_");
+                        f_state.AddTransition(f_empty);
+                        s5_choice.AddTransition(f_empty);
+                        all_transitions.Add(f_empty);
+                    }
+
+                    // Set up both left and right empty transitions
+                    //left
+                    State s1_choice = new State($"q{state_counter++}", false, null);
+                    Transition e1_left = new Transition(this.open_state, s1_choice, "_");
+                    this.open_state.AddTransition(e1_left);
+                    s1_choice.AddTransition(e1_left);
+
+                    //right
+                    State s2_choice = new State($"q{state_counter++}", false, null);
+                    Transition e1_right = new Transition(this.open_state, s2_choice, "_");
+                    this.open_state.AddTransition(e1_right);
+                    s2_choice.AddTransition(e1_right);
+
+                    // Complete left side
+                    if (parent_node.Left_child != null)
+                    {
+                        if (parent_node.Left_child is OperantRegex)
+                        {
+                            State s3_choice = new State($"q{state_counter++}", false, null);
+                            Transition l1_choice = new Transition(s1_choice, s3_choice, parent_node.Left_child.Value.ToString());
+                            s1_choice.AddTransition(l1_choice);
+                            s3_choice.AddTransition(l1_choice);
+                            all_transitions.Add(l1_choice);
+
+                            e2_left = new Transition(s3_choice, s5_choice, "_");
+                            s5_choice.AddTransition(e2_left);
+                            s3_choice.AddTransition(e2_left);
+                            this.states.Add(s3_choice);
+                        }
+                        else
+                            ParseRegexContents((OperatorRegex)parent_node.Left_child, s1_choice, s5_choice);
+
+                        this.states.Add(s1_choice);
+                    }
+
+                    // Complete right side
+                    if (parent_node.Right_child != null)
+                    {
+                        if (parent_node.Right_child is OperantRegex)
+                        {
+                            State s4_choice = new State($"q{state_counter++}", false, null);
+                            Transition r1_choice = new Transition(s2_choice, s4_choice, parent_node.Right_child.Value.ToString());
+                            s2_choice.AddTransition(r1_choice);
+                            s4_choice.AddTransition(r1_choice);
+                            all_transitions.Add(r1_choice);
+
+                            e2_right = new Transition(s4_choice, s5_choice, "_");
+                            s5_choice.AddTransition(e2_right);
+                            s4_choice.AddTransition(e2_right);
+                            this.states.Add(s4_choice);
+                        }
+                        else
+                            ParseRegexContents((OperatorRegex)parent_node.Right_child, s2_choice, s5_choice);
+
+                        this.states.Add(s2_choice);
+                    }
+
+                    // Add all transitions to list (for graph dot conversion)
+                    Transition[] trans_temp = { e1_left, e1_right, e2_left, e2_right };
+                    all_transitions.AddRange(trans_temp);
+                    this.states.Add(s5_choice);
+
                     break;
                 case '*':
                     // TODO: Draw * static layout
@@ -391,8 +476,10 @@ namespace ALE2
             dot_contents += "node [shape = circle];\n";
 
             // set transitions
-            foreach (Transition tr in this.all_transitions)
-                dot_contents += $"\t{tr.startsFrom.state_value} -> {tr.pointsTo.state_value} [label = \"{tr.label}\"];\n";
+            foreach (Transition tr in this.all_transitions) {
+                if (tr != null)
+                    dot_contents += $"\t{tr.startsFrom.state_value} -> {tr.pointsTo.state_value} [label = \"{tr.label}\"];\n";
+            }
 
             // set starting arrow to initial state
             dot_contents += "\nnode [shape=point,label=\"\"]ENTRY;\n";
@@ -414,7 +501,7 @@ namespace ALE2
             Debug.WriteLine("Checking DFA...");
             // Check if graph is DFA
             // For DFA there are no empty/e characters
-            bool hasEmptyChar = this.all_transitions.Any(t => t.label.Length == 0 || t.label == "_");
+            bool hasEmptyChar = this.all_transitions.Any(t => t.label == Char.ConvertFromUtf32(949).ToString()); //t.label.Length == 0 || t.label == "_"
             // For DFA each state should have transitions going out from itself for each  unique letter from the alphabet
             var nr_unique_letters = new HashSet<char>(this.alphabet);
             bool hasNDFATransition = this.states.Any(s => s.transitions.Where(t => t.startsFrom == s).Count() != nr_unique_letters.Count);
@@ -481,7 +568,7 @@ namespace ALE2
 
             // Check transitions from current state (state on top of stack)
             List<Transition> possibleTransitions = this.stateStack.Peek().
-                FindTransitionsByValue(word[letter_index].ToString()).Where(t => t.startsFrom.Equals(this.stateStack.Peek())).ToList();
+                FindTransitionsByValue(word[letter_index].ToString()).Where(t => t.startsFrom.Equals(this.stateStack.Peek()) || t.isEmpty == true).ToList();
 
             if (possibleTransitions != null && possibleTransitions.Count > 0)
             {
@@ -514,13 +601,19 @@ namespace ALE2
             Debug.WriteLine($"Alphabet: {this.alphabet}");
 
             Debug.WriteLine("States:");
+            Debug.WriteLine("# of states: " + this.states.Count().ToString());
             foreach (State state in this.states)
             {
                 Debug.WriteLine($"\t- {state.state_value}");
 
                 Debug.WriteLine("\tTransitions:");
                 foreach (Transition tr in state.transitions)
-                    Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_value} --> {tr.pointsTo.state_value}");
+                {
+                    if (tr != null)
+                        Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_value} --> {tr.pointsTo.state_value}");
+                    else
+                        Debug.WriteLine($"\t\t State '{state.state_value}' has null transitions");
+                }                    
             }
 
             Debug.WriteLine("Words:");
