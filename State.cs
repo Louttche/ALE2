@@ -34,9 +34,24 @@ namespace ALE2
             }
         }
 
-        public List<Transition> FindTransitionsByValue(string label_value)
+        public List<Transition> FindTransitionsByValue(string label_value, bool onlyOut = false, bool empty_closure = false)
         {
-            return transitions.Where(t => t.label == label_value).ToList();
+            List<Transition> result = transitions.Where(t => t.label == label_value).ToList();
+
+            // If checked outside of method, transitions with different from-state than initial will fail for word checking
+            if (onlyOut)
+                result = result.Where(t => t.startsFrom.Equals(this)).ToList();
+
+            // If including empty closures,
+            if (empty_closure) {
+                // return transitions belonging to states that the empty transition is pointing to
+                foreach (Transition t in transitions.Where(t => t.isEmpty && t.startsFrom.Equals(this)))
+                {
+                    Debug.WriteLine($"{this.state_value} has empty transition, checking follow-up transitions...");
+                    result.AddRange(t.pointsTo.FindTransitionsByValue(label_value, true, true));
+                }
+            }
+            return result;
         }
 
         public override bool Equals(object obj)

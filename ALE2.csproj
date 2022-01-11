@@ -208,6 +208,9 @@
     <None Update="files\dfa3.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="files\empty_closure.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="files\graphviz_example.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

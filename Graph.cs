@@ -662,8 +662,7 @@ namespace ALE2
 
             // Check transitions from current state (state on top of stack)
             List<Transition> possibleTransitions = this.stateStack.Peek().
-                FindTransitionsByValue(word[letter_index].ToString())
-                .Where(t => t.startsFrom.Equals(this.stateStack.Peek()) || t.isEmpty == true).ToList();
+                FindTransitionsByValue(word[letter_index].ToString(), true, true).ToList();
 
             if (possibleTransitions != null && possibleTransitions.Count > 0)
             {
