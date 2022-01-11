@@ -85,6 +85,8 @@ namespace ALE2
             pb_graph.Image = Graph.Run(this.graph_dot);
             if (this.graph.words != null)
                 DisplayWords(this.graph.words);
+
+            this.graph.DebugParsedValues();
         }
 
         private void DisplayWords(Dictionary<string, bool> words)

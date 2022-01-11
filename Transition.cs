@@ -33,6 +33,14 @@ namespace ALE2
             }
         }
 
+        public bool isSelfLoop()
+        {
+            if (this.startsFrom.Equals(this.pointsTo))
+                return true;
+
+            return false;
+        }
+
         public override bool Equals(Object obj)
         {
             if ((obj == null) || !this.GetType().Equals(obj.GetType()))

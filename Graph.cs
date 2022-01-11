@@ -24,9 +24,17 @@ namespace ALE2
 
         private Stack<State> stateStack = new Stack<State>();
 
+        // For Finite Testing
+        private State initState = new State(null, false, new List<Transition>());
+        private List<Transition> cycle = new List<Transition>();
+        //private Dictionary<int, List<State>> cycles = new Dictionary<int, List<State>>(); // cycle ID : list of states part of the cycle
+
         // For Regex
         private int state_counter;
         private State open_state;
+
+        // PDA
+        private Stack<char> pdaStack = new Stack<char>();
 
         public Graph(MainForm form)
         {
@@ -245,7 +253,7 @@ namespace ALE2
                     }
 
                     break;
-                case '|': //TODO : FIX IT
+                case '|':
 
                     // Get state to grow from
                     if (o_state == null)
@@ -519,11 +527,97 @@ namespace ALE2
 
         private bool CheckFinite()
         {
-            Debug.WriteLine("Checking Finite...");
             // Check if graph is Finite
+            Debug.WriteLine("Checking if Finite...");
+
+            this.isFinite = true;
+
+            // Check for self-loop
+            foreach (State st in this.states)
+            {
+                List<Transition> selfLoops = st.transitions.Where((t) => t.isSelfLoop()).ToList();
+
+                // Check if there are paths from that loop/state to the final state
+                foreach (Transition loop in selfLoops)
+                {
+                    this.isFinite = !HasPathToFinal(st); // If there is path, graph is infinite
+
+                    // if there is a single self-loop that is connected to a final state, it settles it
+                    if (this.isFinite == false)
+                        break;
+                                                             
+                }
+            }
+
+            // Check for Cycle
+            foreach(State st in this.states)
+            {
+                // Only check if any FINAL states belong to a cycle
+                if (st.isFinal)
+                {
+                    initState = st;
+                    // Check if is part of cycle AND that NOT ALL transitions in cycle are empty
+                    if (IsPartOfCycle(initState) && !cycle.All(t => t.isEmpty))
+                    {
+                        Debug.WriteLine("NOT FINITE: final state part of cycle");
+                        this.isFinite = false;
+                        break;
+                    }
+                }
+            }
 
             // Set tick/x image based on truth value
             this.form.ui_pb_finite.Image = this.isFinite ? new Bitmap(Properties.Resources.tick) : new Bitmap(Properties.Resources.x);
+            return this.isFinite;
+        }
+
+        private bool HasPathToFinal(State st)
+        {
+            if (st.isFinal)
+                return true;
+
+            // Get possible transitions that are not self-loops
+            List<Transition> possibleTransitions = st.transitions
+                .Where(t => !t.isSelfLoop() && t.startsFrom.Equals(st)).ToList();
+
+            if (possibleTransitions != null && possibleTransitions.Count > 0)
+            {
+                foreach (Transition pt in possibleTransitions)
+                {
+                    // If current state's transition points to a final state or has path to final state, return true
+                    if (pt.pointsTo.isFinal || HasPathToFinal(pt.pointsTo))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsPartOfCycle(State st)
+        {
+            // Add state to cycle list
+            this.cycle.AddRange(st.transitions);
+
+            // Get possible transitions that are not self-loops starting from the specified state
+            List<Transition> possibleTransitions = st.transitions
+                .Where(t => !t.isSelfLoop() && t.startsFrom.Equals(st)).ToList();
+
+            if (possibleTransitions != null && possibleTransitions.Count > 0)
+            {
+                foreach (Transition pt in possibleTransitions)
+                {
+                    // If current transition points to the initial state we started with
+                    // OR current transition points to a state that is part of the cycle
+                    // it IS part of cycle
+                    if (pt.pointsTo.Equals(this.initState) || IsPartOfCycle(pt.pointsTo))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Remove state from cycle list (since it had to go recursively back when no true value was returned)
+            this.cycle.RemoveRange(this.cycle.Count - st.transitions.Count, st.transitions.Count());
             return false;
         }
 
@@ -568,7 +662,8 @@ namespace ALE2
 
             // Check transitions from current state (state on top of stack)
             List<Transition> possibleTransitions = this.stateStack.Peek().
-                FindTransitionsByValue(word[letter_index].ToString()).Where(t => t.startsFrom.Equals(this.stateStack.Peek()) || t.isEmpty == true).ToList();
+                FindTransitionsByValue(word[letter_index].ToString())
+                .Where(t => t.startsFrom.Equals(this.stateStack.Peek()) || t.isEmpty == true).ToList();
 
             if (possibleTransitions != null && possibleTransitions.Count > 0)
             {
