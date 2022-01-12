@@ -33,6 +33,10 @@ namespace ALE2
         private int state_counter;
         private State open_state;
 
+        // NFA --> DFA
+        private List<string> states2calculate = new List<string>(); // state labels generated through table
+        private Dictionary<char, string> letters_states = new Dictionary<char, string>(); // letter | state label --> for table
+
         // PDA
         private Stack<char> pdaStack = new Stack<char>();
 
@@ -381,11 +385,11 @@ namespace ALE2
                     sfrom = line.IndexOf("final") + "final:".Length;
                     string[] finalstates = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
 
-                    foreach (State state in this.states.Where(s => finalstates.Contains(s.state_value)))
+                    foreach (State state in this.states.Where(s => finalstates.Contains(s.state_label)))
                     {
                         state.isFinal = true;
                         this.final_states.Add(state);
-                        Debug.WriteLine($"Set '{state.state_value}' as final state.");
+                        Debug.WriteLine($"Set '{state.state_label}' as final state.");
                     }
                 }
                 // Get and set transitions
@@ -402,8 +406,8 @@ namespace ALE2
                         string trans_to = contents[i].Split(",")[1].Split("-->")[1].Trim();
 
                         // Add them to the states + new transition class objects
-                        State tfrom = this.states.FirstOrDefault(s => s.state_value == trans_from);
-                        State tTo = this.states.FirstOrDefault(s => s.state_value == trans_to);
+                        State tfrom = this.states.FirstOrDefault(s => s.state_label == trans_from);
+                        State tTo = this.states.FirstOrDefault(s => s.state_label == trans_to);
 
                         Transition transition = new Transition(tfrom, tTo, trans_value);
 
@@ -478,7 +482,7 @@ namespace ALE2
 
             // set final state in drawing
             foreach (State finalstate in this.final_states)
-                dot_contents += "node [shape = doublecircle]; " + finalstate.state_value + ";\n";
+                dot_contents += "node [shape = doublecircle]; " + finalstate.state_label + ";\n";
 
             // set shape for the rest of the states
             dot_contents += "node [shape = circle];\n";
@@ -486,12 +490,12 @@ namespace ALE2
             // set transitions
             foreach (Transition tr in this.all_transitions) {
                 if (tr != null)
-                    dot_contents += $"\t{tr.startsFrom.state_value} -> {tr.pointsTo.state_value} [label = \"{tr.label}\"];\n";
+                    dot_contents += $"\t{tr.startsFrom.state_label} -> {tr.pointsTo.state_label} [label = \"{tr.label}\"];\n";
             }
 
             // set starting arrow to initial state
             dot_contents += "\nnode [shape=point,label=\"\"]ENTRY;\n";
-            dot_contents += $"ENTRY->{this.states[0].state_value} [label=\"Start\"];\n";
+            dot_contents += $"ENTRY->{this.states[0].state_label} [label=\"Start\"];\n";
 
             dot_contents += "}";
 
@@ -504,7 +508,7 @@ namespace ALE2
             return contents;
         }
 
-        private bool CheckDFA()
+        public bool CheckDFA()
         {
             Debug.WriteLine("Checking DFA...");
             // Check if graph is DFA
@@ -525,7 +529,136 @@ namespace ALE2
             return this.isDFA;
         }
 
-        private bool CheckFinite()
+        public void NDFA2DFA()
+        {
+            states2calculate.Add(this.states[0].state_label); // Add the initial state to start the table (label)
+            bool isDFAGraphReady = NDFA2NFA_CalculateState(this.states[0]);
+
+            if (isDFAGraphReady)
+            {
+                // DEBUG results - TODO: Fix format
+                Debug.WriteLine("\t");
+                foreach (char lt in this.alphabet.ToCharArray())
+                    Debug.Write($"|{lt}");
+
+                foreach (string cs in states2calculate)
+                {
+                    Debug.WriteLine("");
+                    Debug.Write(cs);
+
+                    foreach (KeyValuePair<char, string> l_state in this.letters_states)
+                    {
+                        Debug.Write($"\t|{l_state.Value}");
+                    }
+                }
+
+                Debug.WriteLine($"\ntotal # states: {states2calculate.Count()}");
+                Debug.WriteLine($"total # states under letters: {this.letters_states.Values.Count()}");
+
+                // Draw graph
+            }
+        }
+
+        private bool NDFA2NFA_CalculateState(State curr_state)
+        {
+            try
+            {
+                Debug.WriteLine($"Calculating state {curr_state.state_label}...");
+
+                // Go through every letter
+                foreach (char letter in this.alphabet.ToCharArray())
+                {
+                    Debug.WriteLine($"Processing {letter}...");
+
+                    List<Transition> poss_transitions = new List<Transition>();
+
+                    // Check if letter has transition to what state
+                    
+                    string[] curr_states = Array.Empty<string>();
+                    if (curr_state.state_label.Contains(',')) // If state has multiple state values, check transitions from all of them
+                    {
+                        curr_states = curr_state.state_label.Split(',');
+
+                        foreach (string cs in curr_states)
+                        {
+                            State sep_state = this.states.Find(s => s.state_label == cs);
+                            if (sep_state != null)
+                                poss_transitions.AddRange(sep_state.FindTransitionsByValue(letter.ToString(), true));
+                            // = sep_state.FindTransitionsByValue(letter.ToString(), true);
+                        }
+                    }
+                    else // Has single state value
+                    {
+                        // find outgoing transitions with the same letter
+                        poss_transitions = curr_state.FindTransitionsByValue(letter.ToString(), true);
+                    }
+
+                    // Once we know all possible transitions, form the states as needed
+                    Debug.WriteLine($"{poss_transitions.Count()} possible transitions");
+                    if (poss_transitions != null && poss_transitions.Count > 0)
+                    {
+                        string out_label = ""; //"{";
+                        foreach (Transition poss_tr in poss_transitions)
+                        {
+                            // Check if state was already written (avoid duplicates)
+                            if (out_label.Contains(poss_tr.pointsTo.state_label))
+                                break;
+
+                            Debug.WriteLine($"Transition {poss_tr.label} points to {poss_tr.pointsTo.state_label}");
+
+                            // Add the state the transition is pointing to to the new state's label
+                            out_label += poss_tr.pointsTo.state_label + ",";
+
+                            // If this isn't the last possible transition, add a comma
+                            //if (!poss_transitions.Last().Equals(poss_tr))
+                                //out_label += ",";
+                            //else // add ending parethesis
+                                //out_label += "}";
+                        }
+
+                        // delete extra comma at the end
+                        out_label = out_label.Substring(0, out_label.Length - 1);
+
+                        Debug.WriteLine($"Final new state label: {out_label}");
+                        // Add state to letters_states under the letter
+                        this.letters_states[letter] = out_label;
+                    }
+                }
+
+                Debug.WriteLine($"Number of states under letters: {this.letters_states.Count()}");
+
+                Debug.WriteLine($"\nChecking for new formed states...");
+                // Check if any new states in table
+                foreach (KeyValuePair<char, string> l_state in this.letters_states)
+                {
+                    Debug.WriteLine($"Letter {l_state.Key} now points to state '{l_state.Value}'");
+                    // If there are no states with the same label
+                    if (this.states.All(s => s.state_label != l_state.Value))
+                    {
+                        State new_state = new State(l_state.Value, false, null); // Transitions added later
+                        this.states.Add(new_state);
+
+                        Debug.WriteLine($"New state found: {l_state.Value}");
+
+                        // Add new state to table (states2calculate)
+                        this.states2calculate.Add(l_state.Value);
+
+                        // call this method again with new state
+                        // ?TODO? Maybe after all new states were added?
+                        NDFA2NFA_CalculateState(new_state);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("Could not convert graph to DFA.");
+                return false;
+            }
+        }
+
+        public bool CheckFinite()
         {
             // Check if graph is Finite
             Debug.WriteLine("Checking if Finite...");
@@ -698,15 +831,15 @@ namespace ALE2
             Debug.WriteLine("# of states: " + this.states.Count().ToString());
             foreach (State state in this.states)
             {
-                Debug.WriteLine($"\t- {state.state_value}");
+                Debug.WriteLine($"\t- {state.state_label}");
 
                 Debug.WriteLine("\tTransitions:");
                 foreach (Transition tr in state.transitions)
                 {
                     if (tr != null)
-                        Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_value} --> {tr.pointsTo.state_value}");
+                        Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_label} --> {tr.pointsTo.state_label}");
                     else
-                        Debug.WriteLine($"\t\t State '{state.state_value}' has null transitions");
+                        Debug.WriteLine($"\t\t State '{state.state_label}' has null transitions");
                 }                    
             }
 

@@ -58,7 +58,7 @@ namespace ALE2
 
         public override string ToString()
         {
-            return String.Format($"Transition {this.label}: {this.startsFrom.state_value} --> {this.pointsTo.state_value}");
+            return String.Format($"Transition {this.label}: {this.startsFrom.state_label} --> {this.pointsTo.state_label}");
         }
     }
 }

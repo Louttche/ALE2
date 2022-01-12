@@ -47,6 +47,8 @@ namespace ALE2
 
             pb_wordinput.Visible = false;
             tb_wordinput.Enabled = false;
+            btn_ndfa2dfa.Enabled = false;
+            btn_refresh.Enabled = false;
         }
 
         private void btn_browse_Click(object sender, EventArgs e)
@@ -67,6 +69,9 @@ namespace ALE2
                 {
                     pb_graph.Image = this.graph.bm_graph;
                     DisplayWords(this.graph.words);
+
+                    btn_refresh.Enabled = true;
+                    btn_ndfa2dfa.Enabled = true;
                 }
             }
         }
@@ -119,6 +124,11 @@ namespace ALE2
                 rtb_filecontents.Text = this.graph_dot;
             else
                 rtb_filecontents.Text = String.Join("\n", this.graph_file_contents);
+        }
+
+        private void btn_ndfa2dfa_Click(object sender, EventArgs e)
+        {
+            this.graph.NDFA2DFA();
         }
     }
 }

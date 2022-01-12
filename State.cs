@@ -9,13 +9,13 @@ namespace ALE2
 {
     public class State
     {
-        public string state_value { get; set; }
+        public string state_label { get; set; }
         public bool isFinal { get; set; }
         public List<Transition> transitions { get; set; }
 
-        public State(string value, bool isFinal, List<Transition> transitions)
+        public State(string label, bool isFinal, List<Transition> transitions)
         {
-            this.state_value = value;
+            this.state_label = label;
             this.isFinal = isFinal;
 
             if (transitions != null)
@@ -47,21 +47,23 @@ namespace ALE2
                 // return transitions belonging to states that the empty transition is pointing to
                 foreach (Transition t in transitions.Where(t => t.isEmpty && t.startsFrom.Equals(this)))
                 {
-                    Debug.WriteLine($"{this.state_value} has empty transition, checking follow-up transitions...");
+                    Debug.WriteLine($"{this.state_label} has empty transition, checking follow-up transitions...");
                     result.AddRange(t.pointsTo.FindTransitionsByValue(label_value, true, true));
                 }
             }
+
+            Debug.WriteLine($"Found {result.Count()} transitions with value {label_value}");
             return result;
         }
 
         public override bool Equals(object obj)
         {
             return obj is State state &&
-                   state_value == state.state_value;
+                   state_label == state.state_label;
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(state_value);
+            return HashCode.Combine(state_label);
         }
     }
 }

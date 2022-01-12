@@ -46,6 +46,7 @@
             this.rtb_filecontents = new System.Windows.Forms.RichTextBox();
             this.btn_browse = new System.Windows.Forms.Button();
             this.toolTip_info = new System.Windows.Forms.ToolTip(this.components);
+            this.btn_ndfa2dfa = new System.Windows.Forms.Button();
             this.panel_graph.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pb_graph)).BeginInit();
             this.panel1.SuspendLayout();
@@ -187,6 +188,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.btn_ndfa2dfa);
             this.panel2.Controls.Add(this.cb_filecontents);
             this.panel2.Controls.Add(this.btn_refresh);
             this.panel2.Controls.Add(this.rtb_filecontents);
@@ -228,6 +230,17 @@
             this.btn_browse.Text = "Open File";
             this.btn_browse.UseVisualStyleBackColor = true;
             this.btn_browse.Click += new System.EventHandler(this.btn_browse_Click);
+            // 
+            // btn_ndfa2dfa
+            // 
+            this.btn_ndfa2dfa.Location = new System.Drawing.Point(167, 6);
+            this.btn_ndfa2dfa.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.btn_ndfa2dfa.Name = "btn_ndfa2dfa";
+            this.btn_ndfa2dfa.Size = new System.Drawing.Size(87, 35);
+            this.btn_ndfa2dfa.TabIndex = 10;
+            this.btn_ndfa2dfa.Text = "To DFA";
+            this.btn_ndfa2dfa.UseVisualStyleBackColor = true;
+            this.btn_ndfa2dfa.Click += new System.EventHandler(this.btn_ndfa2dfa_Click);
             // 
             // MainForm
             // 
@@ -272,6 +285,7 @@
         private System.Windows.Forms.Label lbl_finite;
         private System.Windows.Forms.Label lbl_dfa;
         private System.Windows.Forms.CheckBox cb_filecontents;
+        private System.Windows.Forms.Button btn_ndfa2dfa;
     }
 }
 

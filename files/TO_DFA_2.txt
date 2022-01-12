@@ -1,0 +1,33 @@
+# To DFA 2
+alphabet: ab
+stack: 
+states: 1,2,3,4,5
+final: 2,3,4,5
+transitions: 
+1,a --> 2
+1,a --> 3
+1,a --> 4
+1,a --> 5
+2,b --> 3
+3,b --> 4
+4,b --> 5
+end.
+
+dfa: n
+finite: y
+
+words: 
+,n
+a,y
+b,n
+ab,y
+abb,y
+abbb,y
+aa,n
+aaa,n
+bb,n
+bbb,n
+aab,n
+bbba,n
+ba,n
+end.
