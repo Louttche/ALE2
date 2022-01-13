@@ -479,24 +479,48 @@ namespace ALE2
 
         private string CreateDotFromParsedFile(string name = "name")
         {
+            char comma_replacement = 'n';
+            Debug.WriteLine("\nCreating Dot file from parsed values...");
+
             // Create dot file from parsed values
             string dot_contents = $"digraph {name} " + "{rankdir=LR;\n\n";
 
             // set final state in drawing
-            foreach (State finalstate in this.final_states)
+            foreach (State finalstate in this.final_states) {
+                Debug.WriteLine($"Setting final state: {finalstate.state_label}");
+
+                if (finalstate.state_label.Contains(','))
+                    finalstate.state_label = finalstate.state_label.Replace(',', comma_replacement);
+
                 dot_contents += "node [shape = doublecircle]; " + finalstate.state_label + ";\n";
+            }
 
             // set shape for the rest of the states
             dot_contents += "node [shape = circle];\n";
 
             // set transitions
             foreach (Transition tr in this.all_transitions) {
-                if (tr != null)
+                if (tr != null) {
+                    Debug.WriteLine($"Setting transition: {tr.label}: {tr.startsFrom.state_label} --> {tr.pointsTo.state_label}");
+
+                    if (tr.startsFrom.state_label.Contains(','))
+                        tr.startsFrom.state_label = tr.startsFrom.state_label.Replace(',', comma_replacement);
+
+                    if (tr.pointsTo.state_label.Contains(','))
+                        tr.pointsTo.state_label = tr.pointsTo.state_label.Replace(',', comma_replacement);
+
                     dot_contents += $"\t{tr.startsFrom.state_label} -> {tr.pointsTo.state_label} [label = \"{tr.label}\"];\n";
+                }
             }
 
             // set starting arrow to initial state
+            Debug.WriteLine($"Setting initial state: {this.states[0].state_label}");
+
             dot_contents += "\nnode [shape=point,label=\"\"]ENTRY;\n";
+
+            if (this.states[0].state_label.Contains(','))
+                this.states[0].state_label = this.states[0].state_label.Replace(',', comma_replacement);
+
             dot_contents += $"ENTRY->{this.states[0].state_label} [label=\"Start\"];\n";
 
             dot_contents += "}";
@@ -514,8 +538,10 @@ namespace ALE2
         {
             Debug.WriteLine("Checking DFA...");
             // Check if graph is DFA
+
             // For DFA there are no empty/e characters
-            bool hasEmptyChar = this.all_transitions.Any(t => t.label == Char.ConvertFromUtf32(949).ToString()); //t.label.Length == 0 || t.label == "_"
+            bool hasEmptyChar = this.all_transitions.Any(t => t.label == this.form.epsilon.ToString());
+
             // For DFA each state should have transitions going out from itself for each  unique letter from the alphabet
             var nr_unique_letters = new HashSet<char>(this.alphabet);
             bool hasNDFATransition = this.states.Any(s => s.transitions.Where(t => t.startsFrom == s).Count() != nr_unique_letters.Count);
@@ -531,14 +557,16 @@ namespace ALE2
             return this.isDFA;
         }
 
-        public void NDFA2DFA()
+        public string NDFA2DFA()
         {
+            // Reform states if epsilon transitions
+            CheckForEpsilonClosures();
+
             tableIndex = 0;
             this.letters_states.Clear();
             // Initialise groups dictionary (based on letters from alphabet)
             foreach (char lt in this.alphabet.ToCharArray())
                 this.letters_states.Add(lt, new List<string>());
-
 
             states2calculate.Add(this.states[0].state_label); // Add the initial state to start the table (label)
             bool isDFAGraphReady = NDFA2DFA_CalculateState(this.states[0]);
@@ -551,7 +579,7 @@ namespace ALE2
                 this.form.ui_btn_ndfa2dfa.Enabled = false;
                 this.form.ui_btn_ndfa2dfa.Text = "Refresh";
 
-                // Reparse values and Draw graph
+                // Reparse values
                 this.states.Clear();
                 this.all_transitions.Clear();
                 this.final_states.Clear();
@@ -582,16 +610,13 @@ namespace ALE2
                 // Add last found state as final state
                 this.final_states.Add(this.states.Last());
 
-                string graph_contents = CreateDotFromParsedFile();
-                
-                if (graph_contents != null)
-                {
-                    this.bm_graph = Graph.Run(graph_contents);
-                    this.form.ui_pb_graph.Image = this.bm_graph;
-                }
-
                 DebugParsedValues();
+                
+                // Return a dot format using the new values
+                return CreateDotFromParsedFile();
             }
+
+            return null;
         }
 
         private bool NDFA2DFA_CalculateState(State curr_state)
@@ -607,8 +632,7 @@ namespace ALE2
 
                     List<Transition> poss_transitions = new List<Transition>();
 
-                    // Check if letter has transition to what state
-                    
+                    // Check what state the letter might have a transition to 
                     string[] curr_states = Array.Empty<string>();
                     if (curr_state.state_label.Contains(',')) // If state has multiple state values, check transitions from all of them
                     {
@@ -622,10 +646,8 @@ namespace ALE2
                         }
                     }
                     else // Has single state value
-                    {
                         // find outgoing transitions with the same letter
                         poss_transitions = curr_state.FindTransitionsByValue(letter.ToString(), true);
-                    }
 
                     // Once we know all possible transitions, form the states as needed
                     Debug.WriteLine($"{poss_transitions.Count()} possible transitions");
@@ -652,6 +674,18 @@ namespace ALE2
                         //this.letters_states[letter] = out_label;
                         this.letters_states[letter].Add(out_label);
                     }
+                    // If no possible transitions with that letter, create a sink state to transition to
+                    else
+                    {
+                        Debug.WriteLine($"Creating SINK state for letter {letter} from {curr_state.state_label}");
+                        State sink_state = new State("SINK", false, null);
+                        Transition sink_trans = new Transition(curr_state, sink_state, letter.ToString());
+                        sink_state.AddTransition(sink_trans);
+                        curr_state.AddTransition(sink_trans);
+                        this.states.Add(sink_state);
+                        this.all_transitions.Add(sink_trans);
+                        this.letters_states[letter].Add("NaN");
+                    }
                 }
 
                 Debug.WriteLine($"Number of states under letters: {this.letters_states.Count()}");
@@ -661,24 +695,27 @@ namespace ALE2
                 // Check if any new states in table
                 foreach (KeyValuePair<char, List<string>> l_state in this.letters_states)
                 {
-                    Debug.WriteLine($"Letter {l_state.Key} now points to state '{l_state.Value[tableIndex]}'");
-
-                    // If there are no states with the same label
-                    if (this.states.All(s => s.state_label != l_state.Value[tableIndex]))
+                    if (l_state.Value.Count > tableIndex && l_state.Value[tableIndex] != "NaN")
                     {
-                        // Create new state
-                        State new_state = new State(l_state.Value[tableIndex], false, null); // Transitions added later
-                        this.states.Add(new_state);
+                        Debug.WriteLine($"{tableIndex}: Letter {l_state.Key} now points to state '{l_state.Value[tableIndex]}'");
 
-                        Debug.WriteLine($"New state found: {l_state.Value[tableIndex]}");
+                        // If there are no states with the same label
+                        if (this.states.All(s => s.state_label != l_state.Value[tableIndex]))
+                        {
+                            // Create new state
+                            State new_state = new State(l_state.Value[tableIndex], false, null); // Transitions added later
+                            this.states.Add(new_state);
 
-                        // Add new state to table (states2calculate)
-                        this.states2calculate.Add(l_state.Value[tableIndex]);
-                        tableIndex++; // Increase the index that refers to which table row we are currently focused on
+                            Debug.WriteLine($"New state found: {l_state.Value[tableIndex]}");
 
-                        // call this method again with new state
-                        // ?TODO? Maybe after all new states were added?
-                        NDFA2DFA_CalculateState(new_state);
+                            // Add new state to table (states2calculate)
+                            this.states2calculate.Add(l_state.Value[tableIndex]);
+
+                            // call this method again with new state
+                            NDFA2DFA_CalculateState(new_state);
+                                                        
+                            tableIndex++; // Increase the index that refers to which table row we are currently focused on
+                        }
                     }
                 }
 
@@ -689,6 +726,31 @@ namespace ALE2
                 Debug.WriteLine("Could not convert graph to DFA - " + e.Message + " - " + e.ToString());
                 return false;
             }
+        }
+
+        private bool CheckForEpsilonClosures()
+        {
+            Debug.WriteLine("Epsilon Enclosure");
+            bool hasEpsilonClosures = false;
+            foreach (State st in this.states)
+            {
+                Debug.Write($"State {st.state_label} turned to: ");
+                List<Transition> outEpsilonTransitions = st.FindTransitionsByValue(this.form.epsilon.ToString(), true, true); // true for outgoing only, true for recursive epsilon transitions
+
+                // If there are outgoing epsilon transitions to other states from current state, create a closure of both
+                if (outEpsilonTransitions != null) {
+
+                    hasEpsilonClosures = true;
+                    foreach (Transition e_tr in outEpsilonTransitions) {
+                        if (!st.state_label.Contains(e_tr.pointsTo.state_label))
+                            st.state_label += "," + e_tr.pointsTo.state_label;
+                    }
+                }
+
+                Debug.WriteLine($"\t{st.state_label}");
+            }
+
+            return hasEpsilonClosures;
         }
 
         public bool CheckFinite()

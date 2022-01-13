@@ -244,6 +244,9 @@
     <None Update="files\regex_loop_a.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="files\TO_DFA_4.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="files\TO_DFA_1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -19,6 +19,8 @@ namespace ALE2
         public string[] graph_file_contents;
         public string graph_dot;
 
+        public string epsilon = Char.ConvertFromUtf32(949);
+
         public NodeRegexManager regexManager;
 
         // UI Elements
@@ -135,7 +137,12 @@ namespace ALE2
 
         private void btn_ndfa2dfa_Click(object sender, EventArgs e)
         {
-            this.graph.NDFA2DFA();
+            string graph_contents = this.graph.NDFA2DFA();
+            if (graph_contents != null) {
+                Debug.WriteLine("\n\nDOT GRAPH CONTENTS\n" + graph_contents);
+                this.graph_dot = graph_contents;
+                this.pb_graph.Image = Graph.Run(graph_contents);
+            }
         }
     }
 }
