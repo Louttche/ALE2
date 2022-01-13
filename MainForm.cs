@@ -28,6 +28,9 @@ namespace ALE2
         public PictureBox ui_pb_dfa;
         public PictureBox ui_pb_finite;
 
+        public Button ui_btn_refresh;
+        public Button ui_btn_ndfa2dfa;
+
         public ToolTip ui_tooltip_info;
 
         public MainForm()
@@ -48,7 +51,9 @@ namespace ALE2
             pb_wordinput.Visible = false;
             tb_wordinput.Enabled = false;
             btn_ndfa2dfa.Enabled = false;
+            ui_btn_ndfa2dfa = btn_ndfa2dfa;
             btn_refresh.Enabled = false;
+            ui_btn_refresh = btn_refresh;
         }
 
         private void btn_browse_Click(object sender, EventArgs e)
@@ -91,6 +96,8 @@ namespace ALE2
             if (this.graph.words != null)
                 DisplayWords(this.graph.words);
 
+            btn_ndfa2dfa.Enabled = true;
+            btn_ndfa2dfa.Text = "To DFA";
             this.graph.DebugParsedValues();
         }
 

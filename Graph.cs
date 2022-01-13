@@ -35,7 +35,9 @@ namespace ALE2
 
         // NFA --> DFA
         private List<string> states2calculate = new List<string>(); // state labels generated through table
-        private Dictionary<char, string> letters_states = new Dictionary<char, string>(); // letter | state label --> for table
+        private Dictionary<char, List<string>> letters_states = new Dictionary<char, List<string>>(); // letter | state label --> for table
+        private int tableIndex = 0;
+        public bool convertedDFA = false;
 
         // PDA
         private Stack<char> pdaStack = new Stack<char>();
@@ -531,35 +533,68 @@ namespace ALE2
 
         public void NDFA2DFA()
         {
+            tableIndex = 0;
+            this.letters_states.Clear();
+            // Initialise groups dictionary (based on letters from alphabet)
+            foreach (char lt in this.alphabet.ToCharArray())
+                this.letters_states.Add(lt, new List<string>());
+
+
             states2calculate.Add(this.states[0].state_label); // Add the initial state to start the table (label)
-            bool isDFAGraphReady = NDFA2NFA_CalculateState(this.states[0]);
+            bool isDFAGraphReady = NDFA2DFA_CalculateState(this.states[0]);
 
             if (isDFAGraphReady)
             {
-                // DEBUG results - TODO: Fix format
-                Debug.WriteLine("\t");
-                foreach (char lt in this.alphabet.ToCharArray())
-                    Debug.Write($"|{lt}");
+                DebugNDFA2DFA();
+                convertedDFA = true;
 
-                foreach (string cs in states2calculate)
+                this.form.ui_btn_ndfa2dfa.Enabled = false;
+                this.form.ui_btn_ndfa2dfa.Text = "Refresh";
+
+                // Reparse values and Draw graph
+                this.states.Clear();
+                this.all_transitions.Clear();
+                this.final_states.Clear();
+
+                // Create all states available
+                foreach (string l_state in states2calculate) {
+                    // isFinal if is the last state
+                    State state_temp = new State(l_state, states2calculate.Last().Equals(l_state) ? true : false, null);
+                    this.states.Add(state_temp); }
+
+                // Create/Add appropriate transitions between the states
+                int letter_states_index = 0;
+                foreach (char letter in this.alphabet.ToCharArray())
                 {
-                    Debug.WriteLine("");
-                    Debug.Write(cs);
-
-                    foreach (KeyValuePair<char, string> l_state in this.letters_states)
+                    foreach (State st_from in this.states)
                     {
-                        Debug.Write($"\t|{l_state.Value}");
+                        State st_to = this.states.First(s => s.state_label == this.letters_states[letter][letter_states_index]);
+                        Transition transition_temp = new Transition(st_from, st_to, letter.ToString());
+
+                        st_from.AddTransition(transition_temp);
+                        st_to.AddTransition(transition_temp);
+                        this.all_transitions.Add(transition_temp);
+                        letter_states_index++;
                     }
+                    letter_states_index = 0;
                 }
 
-                Debug.WriteLine($"\ntotal # states: {states2calculate.Count()}");
-                Debug.WriteLine($"total # states under letters: {this.letters_states.Values.Count()}");
+                // Add last found state as final state
+                this.final_states.Add(this.states.Last());
 
-                // Draw graph
+                string graph_contents = CreateDotFromParsedFile();
+                
+                if (graph_contents != null)
+                {
+                    this.bm_graph = Graph.Run(graph_contents);
+                    this.form.ui_pb_graph.Image = this.bm_graph;
+                }
+
+                DebugParsedValues();
             }
         }
 
-        private bool NDFA2NFA_CalculateState(State curr_state)
+        private bool NDFA2DFA_CalculateState(State curr_state)
         {
             try
             {
@@ -584,7 +619,6 @@ namespace ALE2
                             State sep_state = this.states.Find(s => s.state_label == cs);
                             if (sep_state != null)
                                 poss_transitions.AddRange(sep_state.FindTransitionsByValue(letter.ToString(), true));
-                            // = sep_state.FindTransitionsByValue(letter.ToString(), true);
                         }
                     }
                     else // Has single state value
@@ -597,7 +631,7 @@ namespace ALE2
                     Debug.WriteLine($"{poss_transitions.Count()} possible transitions");
                     if (poss_transitions != null && poss_transitions.Count > 0)
                     {
-                        string out_label = ""; //"{";
+                        string out_label = "";
                         foreach (Transition poss_tr in poss_transitions)
                         {
                             // Check if state was already written (avoid duplicates)
@@ -608,12 +642,6 @@ namespace ALE2
 
                             // Add the state the transition is pointing to to the new state's label
                             out_label += poss_tr.pointsTo.state_label + ",";
-
-                            // If this isn't the last possible transition, add a comma
-                            //if (!poss_transitions.Last().Equals(poss_tr))
-                                //out_label += ",";
-                            //else // add ending parethesis
-                                //out_label += "}";
                         }
 
                         // delete extra comma at the end
@@ -621,39 +649,44 @@ namespace ALE2
 
                         Debug.WriteLine($"Final new state label: {out_label}");
                         // Add state to letters_states under the letter
-                        this.letters_states[letter] = out_label;
+                        //this.letters_states[letter] = out_label;
+                        this.letters_states[letter].Add(out_label);
                     }
                 }
 
                 Debug.WriteLine($"Number of states under letters: {this.letters_states.Count()}");
 
                 Debug.WriteLine($"\nChecking for new formed states...");
+
                 // Check if any new states in table
-                foreach (KeyValuePair<char, string> l_state in this.letters_states)
+                foreach (KeyValuePair<char, List<string>> l_state in this.letters_states)
                 {
-                    Debug.WriteLine($"Letter {l_state.Key} now points to state '{l_state.Value}'");
+                    Debug.WriteLine($"Letter {l_state.Key} now points to state '{l_state.Value[tableIndex]}'");
+
                     // If there are no states with the same label
-                    if (this.states.All(s => s.state_label != l_state.Value))
+                    if (this.states.All(s => s.state_label != l_state.Value[tableIndex]))
                     {
-                        State new_state = new State(l_state.Value, false, null); // Transitions added later
+                        // Create new state
+                        State new_state = new State(l_state.Value[tableIndex], false, null); // Transitions added later
                         this.states.Add(new_state);
 
-                        Debug.WriteLine($"New state found: {l_state.Value}");
+                        Debug.WriteLine($"New state found: {l_state.Value[tableIndex]}");
 
                         // Add new state to table (states2calculate)
-                        this.states2calculate.Add(l_state.Value);
+                        this.states2calculate.Add(l_state.Value[tableIndex]);
+                        tableIndex++; // Increase the index that refers to which table row we are currently focused on
 
                         // call this method again with new state
                         // ?TODO? Maybe after all new states were added?
-                        NDFA2NFA_CalculateState(new_state);
+                        NDFA2DFA_CalculateState(new_state);
                     }
                 }
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Debug.WriteLine("Could not convert graph to DFA.");
+                Debug.WriteLine("Could not convert graph to DFA - " + e.Message + " - " + e.ToString());
                 return false;
             }
         }
@@ -823,15 +856,14 @@ namespace ALE2
 
         public void DebugParsedValues()
         {
-            Debug.WriteLine("-- DEBUG - Parsed Values --");
+            Debug.WriteLine("\n\n-- DEBUG - Parsed Values --\n");
 
             Debug.WriteLine($"Alphabet: {this.alphabet}");
 
-            Debug.WriteLine("States:");
             Debug.WriteLine("# of states: " + this.states.Count().ToString());
             foreach (State state in this.states)
             {
-                Debug.WriteLine($"\t- {state.state_label}");
+                Debug.WriteLine($"\n\t- {state.state_label}");
 
                 Debug.WriteLine("\tTransitions:");
                 foreach (Transition tr in state.transitions)
@@ -843,11 +875,35 @@ namespace ALE2
                 }                    
             }
 
-            Debug.WriteLine("Words:");
+            Debug.WriteLine("\nWords:");
             foreach (KeyValuePair<string, Boolean> word in this.words)
             {
                 Debug.WriteLine($"\t- {word.Key} : {word.Value}");
             }
+        }
+
+        private void DebugNDFA2DFA()
+        {
+            int pad = 20;
+            // DEBUG results
+            Debug.WriteLine("");
+            foreach (char lt in this.alphabet.ToCharArray())
+                Debug.Write($"|{lt}".PadLeft(pad));
+
+            for (int row = 0; row < states2calculate.Count(); row++)
+            {
+                Debug.WriteLine("");
+                for (int col = 0; col <= this.alphabet.ToCharArray().Count(); col++)
+                {
+                    if (col == 0)
+                        Debug.Write($"{states2calculate[row]}");
+                    else
+                        Debug.Write($"|{this.letters_states[this.alphabet.ToCharArray()[col - 1]][row]}".PadLeft(pad));
+                }
+            }
+
+            Debug.WriteLine($"\n\ntotal # states: {states2calculate.Count()}");
+            Debug.WriteLine($"total # states under letters: {this.letters_states.Values.Count()}");
         }
     }
 }

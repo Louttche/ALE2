@@ -27,6 +27,7 @@ namespace ALE2
         public void AddTransition(Transition transition)
         {
             try {
+                if (!this.transitions.Contains(transition))
                 this.transitions.Add(transition);
             }
             catch (NullReferenceException ne) {
@@ -52,7 +53,7 @@ namespace ALE2
                 }
             }
 
-            Debug.WriteLine($"Found {result.Count()} transitions with value {label_value}");
+            //Debug.WriteLine($"Found {result.Count()} transitions with value {label_value}");
             return result;
         }
 
