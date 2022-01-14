@@ -1,8 +1,12 @@
 alphabet: ab
-states: q0,q1,q2
-final: q2
+states: q0,q1,q2,q3
+final: q3
 transitions: 
-q0,_ --> q1
-q1,b --> q1
+q0,_ --> q2
+q0,b --> q1
+q1,a --> q1
 q1,a --> q2
+q2,b --> q3
+q3,b --> q3
+q3,_ --> q0
 end.

@@ -182,3 +182,9 @@ D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-win
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\TO_DFA_2.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\TO_DFA_3.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\TO_DFA_4.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_0.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_1.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_2.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_3.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_4.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_5.txt

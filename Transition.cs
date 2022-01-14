@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,9 @@ namespace ALE2
         public State pointsTo { get; set; }
         public string label { get; set; }
         public Boolean isEmpty { get; set; }
+        public string popValue { get; set; }
+        public string pushValue { get; set; }
+        //public Dictionary<string, string> stack { get; set; } // what is being popped | what is being pushed
 
         public Transition(State startsfrom, State pointsto, string label)
         {
@@ -31,6 +35,33 @@ namespace ALE2
                 isEmpty = false;
                 this.label = label;
             }
+
+            //this.stack = new Dictionary<string, string>();
+            this.popValue = null;
+            this.pushValue = null;
+        }
+
+        public void AddStack(string pop_value, string push_value)
+        {
+            if (pop_value == "_" || pop_value == "")
+                pop_value = Char.ConvertFromUtf32(949);
+            if (push_value == "_" || push_value == "")
+                push_value = Char.ConvertFromUtf32(949);
+
+            //this.stack.Add(pop_value, push_value);
+            this.popValue = pop_value;
+            this.pushValue = push_value;
+            Debug.WriteLine($"Added pop and push val (resp): {pop_value}, {push_value} to Transition:\n{this.ToString()}\n");
+        }
+
+        public string GetFullLabel()
+        {
+            //if (this.stack.Count > 0)
+            if (this.popValue != null && this.pushValue != null)
+                return this.label + $", {this.popValue} {Char.ConvertFromUtf32(8594)} {this.pushValue}";
+
+            Debug.WriteLine("Could not get stack label because transition does not have one.");
+            return this.label;
         }
 
         public bool isSelfLoop()

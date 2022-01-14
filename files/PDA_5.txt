@@ -1,0 +1,13 @@
+# PDA 5
+alphabet: 
+stack: x
+states: 1,2,3
+final: 3
+transitions: 
+1, [_,x] --> 2
+2, [x,_] --> 3
+end.
+
+words: 
+,y
+end.

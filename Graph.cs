@@ -41,6 +41,7 @@ namespace ALE2
 
         // PDA
         private Stack<char> pdaStack = new Stack<char>();
+        private string stack_val = "";
 
         public Graph(MainForm form)
         {
@@ -114,6 +115,8 @@ namespace ALE2
                 graph_contents = ParseRegexFile(file_contents); // pass content as multi-line
             else if (graph_contents.StartsWith("digraph") || graph_contents.StartsWith("graph"))
                 graph_contents = ParseDotFile(graph_contents);
+            else if (graph_contents.Contains("stack"))
+                graph_contents = ParsePDAFile(file_contents);
             else // Default format (Given by ale2 course)
                 graph_contents = ParseDefaultFile(file_contents); // pass content as multi-line
 
@@ -125,8 +128,11 @@ namespace ALE2
             return bm;
         }
 
+        // TODO: Fix - Recursion needs work (not all examples work) + ADD LOOP
         public string ParseRegexFile(string[] contents)
         {
+            Debug.WriteLine($"Parsing Regex file...");
+
             form.regexManager = new NodeRegexManager();
 
             int line_index = -1;
@@ -354,6 +360,8 @@ namespace ALE2
 
         public string ParseDefaultFile(string[] contents)
         {
+            Debug.WriteLine($"Parsing Default file...");
+
             //string name_of_file = "";
             int sfrom = 0;
             int line_index = -1;
@@ -477,6 +485,142 @@ namespace ALE2
             return CreateDotFromParsedFile();
         }
 
+        public string ParsePDAFile(string[] contents)
+        {
+            Debug.WriteLine($"Parsing PDA file...");
+
+            try
+            {
+                int sfrom = 0;
+                int line_index = -1;
+                foreach (string line in contents)
+                {
+                    line_index++;
+                    if (line.StartsWith('#'))
+                        continue;
+
+                    // Get alphabet
+                    else if (line.StartsWith("alphabet"))
+                    {
+                        sfrom = line.IndexOf("alphabet") + "alphabet:".Length;
+                        this.alphabet = line.Substring(sfrom, line.Length - sfrom).Trim();
+                        Debug.WriteLine($"Alphabet parsed: {this.alphabet}");
+                    }
+                    // Get stack values
+                    else if (line.StartsWith("stack"))
+                    {
+                        sfrom = line.IndexOf("stack") + "stack:".Length;
+                        this.stack_val = line.Substring(sfrom, line.Length - sfrom).Trim();
+                        Debug.WriteLine($"Stack parsed: {this.stack_val}");
+                    }
+                    // Get states (name only)
+                    else if (line.StartsWith("states"))
+                    {
+                        sfrom = line.IndexOf("states") + "states:".Length;
+                        string[] states = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+                        foreach (string state in states)
+                        {
+                            this.states.Add(new State(state, false, null)); // A null transitions param will initialise a new List()
+                            Debug.WriteLine($"State Name parsed: {state}");
+                        }
+                    }
+                    // Get and set final state
+                    else if (line.StartsWith("final"))
+                    {//final: q2,q4
+                        sfrom = line.IndexOf("final") + "final:".Length;
+                        string[] finalstates = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+
+                        foreach (State state in this.states.Where(s => finalstates.Contains(s.state_label)))
+                        {
+                            state.isFinal = true;
+                            this.final_states.Add(state);
+                            Debug.WriteLine($"Set '{state.state_label}' as final state.");
+                        }
+                    }
+                    // Get and set transitions
+                    else if (line.StartsWith("transitions"))
+                    {
+                        for (int i = line_index + 1; i < contents.Length; i++)
+                        {
+                            if (contents[i] == "end.")
+                                break;
+
+                            // Separate the line's contents
+                            // TODO: Find how to split
+                            string[] comma_split = contents[i].Split(",");
+
+                            string trans_from = "";
+                            string trans_value = "";
+                            string pop_val = "";
+                            string push_val = "";
+                            string trans_to = "";
+
+                            if (comma_split.Length == 2) // 1 comma --> 2 elements | eg., A,b --> A == { A },{ b --> A }
+                            {
+                                // Separate the line's contents
+                                trans_from = contents[i].Split(",")[0].Trim();
+
+                                trans_value = contents[i].Split(",")[1].Split("-->")[0].Trim();
+                                trans_to = contents[i].Split(",")[1].Split("-->")[1].Trim();
+                            }
+                            else // Most likely 2 commas --> 3 elements | eg., A,b [_,x] --> A == { A },{ b [_ },{ x] --> A }
+                            {
+                                // { A }
+                                trans_from = contents[i].Split(",")[0].Trim();
+
+                                // { b [_ } : Split at [
+                                trans_value = contents[i].Split(",")[1].Split("[")[0].Trim();
+                                pop_val = contents[i].Split(",")[1].Split("[")[1].Trim();
+
+                                //{ x] --> A } : Split at ] for push val and --> for state-to val
+                                push_val = contents[i].Split(",")[2].Split("]")[0].Trim();
+                                trans_to = contents[i].Split(",")[2].Split("-->")[1].Trim();
+                            }
+
+                            // Add them to the states + new transition class objects
+                            State tfrom = this.states.FirstOrDefault(s => s.state_label == trans_from);
+                            State tTo = this.states.FirstOrDefault(s => s.state_label == trans_to);
+
+                            Transition transition = new Transition(tfrom, tTo, trans_value);
+
+                            if (transition != null)
+                            {
+                                transition.AddStack(pop_val, push_val);
+                                tfrom.AddTransition(transition);
+                                // Only add to the destination state if its not a self-loop transition
+                                // (or else same state gets duplicate transition in list)
+                                if (!tfrom.Equals(tTo))
+                                    tTo.AddTransition(transition);
+
+                                all_transitions.Add(transition);
+                            }
+                        }
+                    }
+                    // Get words
+                    else if (line.StartsWith("words"))
+                    {
+                        for (int i = line_index + 1; i < contents.Length; i++)
+                        {
+                            if (contents[i] == "end.")
+                                break;
+
+                            // If line is empty
+                            if (contents[i] == "")
+                                continue;
+
+                            this.words[contents[i].Split(",")[0].Trim()] = contents[i].Split(",")[1].Trim() == "y" ? true : false;
+                        }
+                    }
+                }
+
+                return this.CreateDotFromParsedFile("PDA2Dot");
+            }
+            catch (Exception ex) {
+                Debug.WriteLine("Could not parse PDA file.\n\t-" + ex.ToString());
+                return null;
+            }
+        }
+
         private string CreateDotFromParsedFile(string name = "name")
         {
             char comma_replacement = 'n';
@@ -501,7 +645,7 @@ namespace ALE2
             // set transitions
             foreach (Transition tr in this.all_transitions) {
                 if (tr != null) {
-                    Debug.WriteLine($"Setting transition: {tr.label}: {tr.startsFrom.state_label} --> {tr.pointsTo.state_label}");
+                    Debug.WriteLine("Setting transition:\t" + tr.ToString());
 
                     if (tr.startsFrom.state_label.Contains(','))
                         tr.startsFrom.state_label = tr.startsFrom.state_label.Replace(',', comma_replacement);
@@ -509,7 +653,7 @@ namespace ALE2
                     if (tr.pointsTo.state_label.Contains(','))
                         tr.pointsTo.state_label = tr.pointsTo.state_label.Replace(',', comma_replacement);
 
-                    dot_contents += $"\t{tr.startsFrom.state_label} -> {tr.pointsTo.state_label} [label = \"{tr.label}\"];\n";
+                    dot_contents += $"\t{tr.startsFrom.state_label} -> {tr.pointsTo.state_label} [label = \"{tr.GetFullLabel()}\"];\n";
                 }
             }
 
@@ -557,6 +701,7 @@ namespace ALE2
             return this.isDFA;
         }
 
+        // TODO: Fix - Only works without sink (is implemented but has errors) and on DFA
         public string NDFA2DFA()
         {
             // Reform states if epsilon transitions
@@ -579,41 +724,49 @@ namespace ALE2
                 this.form.ui_btn_ndfa2dfa.Enabled = false;
                 this.form.ui_btn_ndfa2dfa.Text = "Refresh";
 
-                // Reparse values
-                this.states.Clear();
-                this.all_transitions.Clear();
-                this.final_states.Clear();
-
-                // Create all states available
-                foreach (string l_state in states2calculate) {
-                    // isFinal if is the last state
-                    State state_temp = new State(l_state, states2calculate.Last().Equals(l_state) ? true : false, null);
-                    this.states.Add(state_temp); }
-
-                // Create/Add appropriate transitions between the states
-                int letter_states_index = 0;
-                foreach (char letter in this.alphabet.ToCharArray())
+                try
                 {
-                    foreach (State st_from in this.states)
+                    // Reparse values
+                    this.states.Clear();
+                    this.all_transitions.Clear();
+                    this.final_states.Clear();
+
+                    // Create all states available
+                    foreach (string l_state in states2calculate)
                     {
-                        State st_to = this.states.First(s => s.state_label == this.letters_states[letter][letter_states_index]);
-                        Transition transition_temp = new Transition(st_from, st_to, letter.ToString());
-
-                        st_from.AddTransition(transition_temp);
-                        st_to.AddTransition(transition_temp);
-                        this.all_transitions.Add(transition_temp);
-                        letter_states_index++;
+                        // isFinal if is the last state
+                        State state_temp = new State(l_state, states2calculate.Last().Equals(l_state) ? true : false, null);
+                        this.states.Add(state_temp);
                     }
-                    letter_states_index = 0;
+
+                    // Create/Add appropriate transitions between the states
+                    int letter_states_index = 0;
+                    foreach (char letter in this.alphabet.ToCharArray())
+                    {
+                        foreach (State st_from in this.states)
+                        {
+                            State st_to = this.states.First(s => s.state_label == this.letters_states[letter][letter_states_index]);
+                            Transition transition_temp = new Transition(st_from, st_to, letter.ToString());
+
+                            st_from.AddTransition(transition_temp);
+                            st_to.AddTransition(transition_temp);
+                            this.all_transitions.Add(transition_temp);
+                            letter_states_index++;
+                        }
+                        letter_states_index = 0;
+                    }
+
+                    // Add last found state as final state
+                    this.final_states.Add(this.states.Last());
+
+                    DebugParsedValues();
+                    // Return a dot format using the new values
+                    return CreateDotFromParsedFile();
                 }
-
-                // Add last found state as final state
-                this.final_states.Add(this.states.Last());
-
-                DebugParsedValues();
-                
-                // Return a dot format using the new values
-                return CreateDotFromParsedFile();
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"Could not reparse values. - {e.ToString()}");
+                }
             }
 
             return null;
@@ -695,12 +848,12 @@ namespace ALE2
                 // Check if any new states in table
                 foreach (KeyValuePair<char, List<string>> l_state in this.letters_states)
                 {
-                    if (l_state.Value.Count > tableIndex && l_state.Value[tableIndex] != "NaN")
+                    if (l_state.Value.Count > tableIndex)
                     {
                         Debug.WriteLine($"{tableIndex}: Letter {l_state.Key} now points to state '{l_state.Value[tableIndex]}'");
 
                         // If there are no states with the same label
-                        if (this.states.All(s => s.state_label != l_state.Value[tableIndex]))
+                        if (l_state.Value[tableIndex] != "NaN" && this.states.All(s => s.state_label != l_state.Value[tableIndex]))
                         {
                             // Create new state
                             State new_state = new State(l_state.Value[tableIndex], false, null); // Transitions added later
@@ -713,9 +866,11 @@ namespace ALE2
 
                             // call this method again with new state
                             NDFA2DFA_CalculateState(new_state);
-                                                        
+
                             tableIndex++; // Increase the index that refers to which table row we are currently focused on
                         }
+                        else
+                            Debug.WriteLine("No new states found.");
                     }
                 }
 

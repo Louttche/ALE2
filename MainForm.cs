@@ -60,47 +60,56 @@ namespace ALE2
 
         private void btn_browse_Click(object sender, EventArgs e)
         {
-            string init_dir = Directory.GetCurrentDirectory() + "/files"; //Environment.CurrentDirectory;
-
-            OpenFileDialog file = new OpenFileDialog();
-            file.InitialDirectory = init_dir;
-            if (file.ShowDialog() == DialogResult.OK)
+            try
             {
-                this.graph = new Graph(this);
-                this.graph_path = file.FileName;
-                this.graph.bm_graph = this.graph.GetGraphFromFile(this.graph_path);
-                
-                this.graph.DebugParsedValues();
+                string init_dir = Directory.GetCurrentDirectory() + "/files"; //Environment.CurrentDirectory;
 
-                if (this.graph.bm_graph != null)
+                OpenFileDialog file = new OpenFileDialog();
+                file.InitialDirectory = init_dir;
+                if (file.ShowDialog() == DialogResult.OK)
                 {
-                    pb_graph.Image = this.graph.bm_graph;
+                    this.graph = new Graph(this);
+                    this.graph_path = file.FileName;
+                    this.graph.bm_graph = this.graph.GetGraphFromFile(this.graph_path);
+
+                    this.graph.DebugParsedValues();
                     DisplayWords(this.graph.words);
 
-                    btn_refresh.Enabled = true;
-                    btn_ndfa2dfa.Enabled = true;
+                    if (this.graph.bm_graph != null)
+                    {
+                        pb_graph.Image = this.graph.bm_graph;
+                        btn_refresh.Enabled = true;
+                        btn_ndfa2dfa.Enabled = true;
+                    }
                 }
             }
+            catch (Exception ex) { Debug.WriteLine("Could not load file.\n\t-" + ex.ToString()); }
         }
 
         private void btn_refresh_Click(object sender, EventArgs e)
         {
-            this.graph = new Graph(this);
+            try
+            {
+                this.graph = new Graph(this);
 
-            if (rtb_filecontents.Text.StartsWith("digraph") || rtb_filecontents.Text.StartsWith("graph"))
-                this.graph_dot = rtb_filecontents.Text;
-            else if (rtb_filecontents.Text.StartsWith("regex") || rtb_filecontents.Text.StartsWith("# Regex"))
-                this.graph_dot = this.graph.ParseRegexFile(rtb_filecontents.Lines);
-            else
-                this.graph_dot = this.graph.ParseDefaultFile(rtb_filecontents.Lines);
+                if (rtb_filecontents.Text.StartsWith("digraph") || rtb_filecontents.Text.StartsWith("graph"))
+                    this.graph_dot = rtb_filecontents.Text;
+                else if (rtb_filecontents.Text.StartsWith("regex") || rtb_filecontents.Text.StartsWith("# Regex"))
+                    this.graph_dot = this.graph.ParseRegexFile(rtb_filecontents.Lines);
+                else if (rtb_filecontents.Text.Contains("stack"))
+                    this.graph_dot = this.graph.ParsePDAFile(rtb_filecontents.Lines);
+                else
+                    this.graph_dot = this.graph.ParseDefaultFile(rtb_filecontents.Lines);
 
-            pb_graph.Image = Graph.Run(this.graph_dot);
-            if (this.graph.words != null)
-                DisplayWords(this.graph.words);
+                pb_graph.Image = Graph.Run(this.graph_dot);
+                if (this.graph.words != null)
+                    DisplayWords(this.graph.words);
 
-            btn_ndfa2dfa.Enabled = true;
-            btn_ndfa2dfa.Text = "To DFA";
-            this.graph.DebugParsedValues();
+                btn_ndfa2dfa.Enabled = true;
+                btn_ndfa2dfa.Text = "To DFA";
+                this.graph.DebugParsedValues();
+            }
+            catch (Exception ex) { Debug.WriteLine("Could not refresh graph.\n\t-" + ex.ToString()); }
         }
 
         private void DisplayWords(Dictionary<string, bool> words)
