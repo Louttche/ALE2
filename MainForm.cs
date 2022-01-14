@@ -117,7 +117,7 @@ namespace ALE2
             // Clear textbox with words
             rtb_words.Text = "";
             // Check words + display them
-            this.graph.CheckWords();
+            this.graph.CheckWords(this.graph.isPDA);
             // Make manual word input available
             tb_wordinput.Enabled = true;
         }
@@ -128,7 +128,7 @@ namespace ALE2
             {
                 pb_wordinput.Visible = true;
                 // Check inputed word
-                if (this.graph.CheckWord(tb_wordinput.Text))
+                if (this.graph.CheckWord(tb_wordinput.Text, 0, this.graph.isPDA))
                     pb_wordinput.Image = new Bitmap(Properties.Resources.tick);
                 else
                     pb_wordinput.Image = new Bitmap(Properties.Resources.x);

@@ -57,7 +57,9 @@ namespace ALE2
         public string GetFullLabel()
         {
             //if (this.stack.Count > 0)
-            if (this.popValue != null && this.pushValue != null)
+
+            // Only show stack if only 1 or neither values are epsilon/empty
+            if (this.popValue != null && this.pushValue != null && !(this.popValue.Equals(Char.ConvertFromUtf32(949)) && this.pushValue.Equals(Char.ConvertFromUtf32(949))))
                 return this.label + $", {this.popValue} {Char.ConvertFromUtf32(8594)} {this.pushValue}";
 
             Debug.WriteLine("Could not get stack label because transition does not have one.");
@@ -89,7 +91,7 @@ namespace ALE2
 
         public override string ToString()
         {
-            return String.Format($"Transition {this.label}: {this.startsFrom.state_label} --> {this.pointsTo.state_label}");
+            return String.Format($"Transition {this.GetFullLabel()}: {this.startsFrom.state_label} --> {this.pointsTo.state_label}");
         }
     }
 }

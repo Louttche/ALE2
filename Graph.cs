@@ -40,7 +40,8 @@ namespace ALE2
         public bool convertedDFA = false;
 
         // PDA
-        private Stack<char> pdaStack = new Stack<char>();
+        public bool isPDA = false;
+        private Stack<string> pdaStack = new Stack<string>();
         private string stack_val = "";
 
         public Graph(MainForm form)
@@ -99,6 +100,7 @@ namespace ALE2
 
         public Bitmap GetGraphFromFile(string path)
         {
+            this.isPDA = false;
             Bitmap bm = null;
             string[] file_contents = File.ReadAllLines(@path);
             // Do not read any commented lines + join all lines in 1 string
@@ -488,7 +490,7 @@ namespace ALE2
         public string ParsePDAFile(string[] contents)
         {
             Debug.WriteLine($"Parsing PDA file...");
-
+            this.isPDA = true;
             try
             {
                 int sfrom = 0;
@@ -1004,8 +1006,9 @@ namespace ALE2
             return false;
         }
 
-        public void CheckWords()
+        public void CheckWords(bool isPDA = false)
         {
+            Debug.WriteLine($"Checking words - is PDA: {isPDA}");
             int rtb_index = 0;
             foreach (KeyValuePair<string, bool> word in this.words)
             {
@@ -1014,7 +1017,7 @@ namespace ALE2
                 form.ui_rtb_words.SelectionLength = word.Key.Length;
 
                 // Check if word is accepted
-                bool accepted = CheckWord(word.Key, 0);
+                bool accepted = CheckWord(word.Key, 0, isPDA);
                 if (accepted)
                     form.ui_rtb_words.SelectionColor = Color.Green;
                 else
@@ -1031,11 +1034,13 @@ namespace ALE2
             }
         }
 
-        public bool CheckWord(string word, int letter_index = 0)
+        public bool CheckWord(string word, int letter_index = 0, bool isPDA = false)
         {
             // If starting new word, clear stack and push first state
             if (letter_index == 0)
             {
+                Debug.WriteLine($"\nChecking word '{word}' - is PDA: {isPDA}");
+                this.pdaStack.Clear();
                 this.stateStack.Clear();
                 this.stateStack.Push(this.states[0]);
             }
@@ -1053,21 +1058,62 @@ namespace ALE2
                 {
                     this.stateStack.Push(pt.pointsTo);
 
+                    Debug.WriteLine($"Checking transition from {this.stateStack.Peek().state_label}");
+                    // If PDA and pop/push vals are initialized
+                    if (isPDA && pt.popValue != null && pt.pushValue != null)
+                    {
+                        Debug.WriteLine($"Checking PDA Conditions...");
+                        // has something to pop (not equals to epsilon) 
+                        if (!pt.popValue.Equals(this.form.epsilon)) {
+                            Debug.WriteLine($"Trying to pop {pt.popValue}...");
+                            
+                            // if pdaStack is not empty and pop val is equal to the top of the stack
+                            if (this.pdaStack.Count > 0 && this.pdaStack.Peek() == pt.popValue)
+                            {
+                                // pop stack
+                                this.pdaStack.Pop();
+                                Debug.WriteLine($"Successfully popped {pt.popValue}. stack count = {this.pdaStack.Count()}");
+                            }
+                            // if stack is empty OR what we want to pop is not at the top of the stack, check other possibilities
+                            else
+                            {
+                                Debug.WriteLine($"Could not pop {pt.popValue}. stack count = {this.pdaStack.Count()}");
+                                continue;
+                            }
+                        }
+
+                        // if it has nothing to pop, just push if there is something to push
+                        if (!pt.pushValue.Equals(this.form.epsilon))
+                        {
+                            this.pdaStack.Push(pt.pushValue);
+                            Debug.WriteLine($"Pushed {pt.pushValue} to stack. stack count = {this.pdaStack.Count()}");
+                        }
+                    }
+                    
                     // Check if last letter
                     if (letter_index == word.Length - 1) {
+                        // Is state final?
                         if (this.stateStack.Peek().isFinal)
-                            return true; // If current state is final, accept word
-                        else
+                        {
+                            // If PDA, accept word only if stack is empty
+                            if (isPDA && pt.popValue != null && pt.pushValue != null)
+                            {
+                                if (this.pdaStack.Count == 0)
+                                    return true;
+                            }
+                            // If not PDA just accept word
+                            else
+                                return true;
+                        } else
                         {
                             this.stateStack.Pop(); // pop stack to go back to previous parent
                             continue; // check other possible transitions
                         }
                     }
                     else
-                        return CheckWord(word, ++letter_index);
+                        return CheckWord(word, ++letter_index, isPDA);
                 }
             }
-
             return false;
         }
 
@@ -1086,7 +1132,7 @@ namespace ALE2
                 foreach (Transition tr in state.transitions)
                 {
                     if (tr != null)
-                        Debug.WriteLine($"\t\t {tr.label}: {tr.startsFrom.state_label} --> {tr.pointsTo.state_label}");
+                        Debug.WriteLine($"\t\t {tr.ToString()}");
                     else
                         Debug.WriteLine($"\t\t State '{state.state_label}' has null transitions");
                 }                    
