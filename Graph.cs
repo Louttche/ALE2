@@ -460,11 +460,11 @@ namespace ALE2
 
                         if (transition != null)
                         {
-                            tfrom.AddTransition(transition);
-                            // Only add to the destination state if its not a self-loop transition
-                            // (or else same state gets duplicate transition in list)
-                            if (!tfrom.Equals(tTo))
-                                tTo.AddTransition(transition);
+                            //tfrom.AddTransition(transition);
+                            //// Only add to the destination state if its not a self-loop transition
+                            //// (or else same state gets duplicate transition in list)
+                            //if (!tfrom.Equals(tTo))
+                            //    tTo.AddTransition(transition);
 
                             all_transitions.Add(transition);
                         }
@@ -623,11 +623,11 @@ namespace ALE2
                             if (transition != null)
                             {
                                 transition.AddStack(pop_val, push_val);
-                                tfrom.AddTransition(transition);
-                                // Only add to the destination state if its not a self-loop transition
-                                // (or else same state gets duplicate transition in list)
-                                if (!tfrom.Equals(tTo))
-                                    tTo.AddTransition(transition);
+                                //tfrom.AddTransition(transition);
+                                //// Only add to the destination state if its not a self-loop transition
+                                //// (or else same state gets duplicate transition in list)
+                                //if (!tfrom.Equals(tTo))
+                                //    tTo.AddTransition(transition);
 
                                 all_transitions.Add(transition);
                             }
@@ -1056,15 +1056,17 @@ namespace ALE2
 
                 // Check if word is accepted
                 bool accepted = CheckWord(word.Key, 0, isPDA);
-                if (accepted)
+                if (accepted) {
+                    Debug.WriteLine($"Word '{word.Key}' accepted.");
                     form.ui_rtb_words.SelectionColor = Color.Green;
+                }
                 else
                     form.ui_rtb_words.SelectionColor = Color.Red;
 
                 rtb_index = form.ui_rtb_words.Text.Length;
 
-                // Check if file is wrong
-                if (accepted != word.Value) {
+                // If file is wrong, color the truth value red
+                if (!accepted.Equals(word.Value)) {
                     form.ui_rtb_words.SelectionStart = rtb_index - (word.Value.ToString().Length + 1);
                     form.ui_rtb_words.SelectionLength = word.Value.ToString().Length;
                     form.ui_rtb_words.SelectionColor = Color.Red;
@@ -1092,12 +1094,12 @@ namespace ALE2
 
             if (possibleTransitions != null && possibleTransitions.Count > 0)
             {
-                Debug.WriteLine($"Found {possibleTransitions.Count} from {this.stateStack.Peek().state_label}");
+                Debug.WriteLine($"Found {possibleTransitions.Count} from state '{this.stateStack.Peek().state_label}'");
                 foreach (Transition pt in possibleTransitions)
                 {
                     this.stateStack.Push(pt.pointsTo);
-
-                    Debug.WriteLine($"Checking transition from {this.stateStack.Peek().state_label}");
+                    Debug.WriteLine($"Checking transition [{pt.ToString()}]");
+                    
                     // If PDA and pop/push vals are initialized
                     if (isPDA && pt.popValue != null && pt.pushValue != null)
                     {
@@ -1133,9 +1135,11 @@ namespace ALE2
                     // Check if last letter
                     if (letter_index == word.Length - 1)
                     {
+                        Debug.WriteLine($"'{word[letter_index]}' is the last letter. Checking if '{this.stateStack.Peek().state_label}' is final state...");
                         // Is state final?
                         if (this.stateStack.Peek().isFinal)
                         {
+                            Debug.WriteLine($"'{this.stateStack.Peek().state_label}' IS a final state");
                             // If PDA, accept word only if stack is empty
                             if (isPDA && pt.popValue != null && pt.pushValue != null)
                             {
@@ -1148,13 +1152,24 @@ namespace ALE2
                         }
                         else
                         {
+                            Debug.WriteLine($"'{this.stateStack.Peek().state_label}' is NOT a final state. Checking other transitions...");
                             this.stateStack.Pop(); // pop stack to go back to previous parent
-                            continue; // check other possible transitions
                         }
                     }
                     else
-                        return CheckWord(word, ++letter_index, isPDA);
+                    {
+                        Debug.WriteLine($"'{word[letter_index]}' is not the last letter\nChecking next letter...");
+                        if (CheckWord(word, ++letter_index, isPDA))
+                            return true;
+                        else {
+                            // Check other paths from previous state
+                            this.stateStack.Pop();
+                            // Point back to the previous letter
+                            letter_index--;
+                        }
+                    }
                 }
+                Debug.WriteLine($"No more possible transitions with '{word[letter_index]}' from state '{this.stateStack.Peek().state_label}'");
             }
             else
                 Debug.WriteLine($"Couldn't find transitions with letter {word[letter_index]} from {this.stateStack.Peek().state_label}");

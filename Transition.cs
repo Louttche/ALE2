@@ -12,7 +12,7 @@ namespace ALE2
         public State startsFrom { get; set; }
         public State pointsTo { get; set; }
         public string label { get; set; }
-        public Boolean isEmpty { get; set; }
+        public bool isEmpty { get; set; }
         public string popValue { get; set; }
         public string pushValue { get; set; }
         //public Dictionary<string, string> stack { get; set; } // what is being popped | what is being pushed
