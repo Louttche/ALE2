@@ -25,6 +25,10 @@ namespace ALE2
             this.startsFrom = startsfrom;
             this.pointsTo = pointsto;
 
+            // Add transition to the states too
+            this.startsFrom.AddTransition(this);
+            this.pointsTo.AddTransition(this);
+
             if (label == "_" || label == "" || label == " ")
             {
                 isEmpty = true;
@@ -36,9 +40,10 @@ namespace ALE2
                 this.label = label;
             }
 
-            //this.stack = new Dictionary<string, string>();
             this.popValue = null;
             this.pushValue = null;
+
+            Debug.WriteLine($"Transition Created - {this.ToString()}");
         }
 
         public void AddStack(string pop_value, string push_value)
@@ -62,7 +67,7 @@ namespace ALE2
             if (this.popValue != null && this.pushValue != null && !(this.popValue.Equals(Char.ConvertFromUtf32(949)) && this.pushValue.Equals(Char.ConvertFromUtf32(949))))
                 return this.label + $", {this.popValue} {Char.ConvertFromUtf32(8594)} {this.pushValue}";
 
-            Debug.WriteLine("Could not get stack label because transition does not have one.");
+            //Debug.WriteLine("Could not get stack label because transition does not have one.");
             return this.label;
         }
 

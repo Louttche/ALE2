@@ -81,6 +81,8 @@ namespace ALE2
                         btn_refresh.Enabled = true;
                         btn_ndfa2dfa.Enabled = true;
                     }
+
+                    btn_ndfa2dfa.Text = "To DFA";
                 }
             }
             catch (Exception ex) { Debug.WriteLine("Could not load file.\n\t-" + ex.ToString()); }

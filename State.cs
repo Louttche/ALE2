@@ -22,6 +22,8 @@ namespace ALE2
                 this.transitions = transitions;
             else
                 this.transitions = new List<Transition>();
+
+            Debug.WriteLine($"State Created - {this.state_label}");
         }
 
         public void AddTransition(Transition transition)
