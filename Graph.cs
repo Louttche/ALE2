@@ -31,7 +31,6 @@ namespace ALE2
 
         // For Regex
         private int state_counter;
-        //private State open_state;
 
         // NFA --> DFA
         private List<string> states2calculate = new List<string>(); // state labels generated through table
@@ -135,8 +134,6 @@ namespace ALE2
         public string ParseDefaultFile(string[] contents)
         {
             Debug.WriteLine($"Parsing Default file...");
-
-            //string name_of_file = "";
             int sfrom = 0;
             int line_index = -1;
             foreach (string line in contents)
@@ -196,15 +193,7 @@ namespace ALE2
                         Transition transition = new Transition(tfrom, tTo, trans_value);
 
                         if (transition != null)
-                        {
-                            //tfrom.AddTransition(transition);
-                            //// Only add to the destination state if its not a self-loop transition
-                            //// (or else same state gets duplicate transition in list)
-                            //if (!tfrom.Equals(tTo))
-                            //    tTo.AddTransition(transition);
-
                             all_transitions.Add(transition);
-                        }
                     }
                 }
                 // Get whether or not the file says the graph is a dfa
@@ -679,8 +668,8 @@ namespace ALE2
             foreach (Transition tr in this.all_transitions) {
                 if (tr != null) {
                     Debug.WriteLine("Setting transition:\t" + tr.ToString());
-
-                    dot_contents += $"\t\"{tr.startsFrom.state_label}\" -> \"{tr.pointsTo.state_label}\" [label = \"{tr.GetFullLabel()}\"];\n";
+                    dot_contents += $"\t\"{tr.startsFrom.state_label}\" -> \"{tr.pointsTo.state_label}\"";
+                    dot_contents += $"[label = \"{tr.GetFullLabel()}\"];\n";
                 }
             }
 
@@ -921,7 +910,9 @@ namespace ALE2
             foreach (State st in this.states)
             {
                 Debug.Write($"State {st.state_label} turned to: ");
-                List<Transition> outEpsilonTransitions = st.FindTransitionsByValue(this.form.epsilon.ToString(), true, true); // true for outgoing only, true for recursive epsilon transitions
+
+                // true for outgoing only, true for recursive epsilon transitions
+                List<Transition> outEpsilonTransitions = st.FindTransitionsByValue(this.form.epsilon.ToString(), true, true);
 
                 // If there are outgoing epsilon transitions to other states from current state, create a closure of both
                 if (outEpsilonTransitions != null) {
@@ -1007,7 +998,8 @@ namespace ALE2
             {
                 foreach (Transition pt in possibleTransitions)
                 {
-                    // If current state's transition points to a final state or has path to final state, return true
+                    // If current state's transition points to a final state or
+                    // has path to final state, return true
                     if (pt.pointsTo.isFinal || HasPathToFinal(pt.pointsTo))
                         return true;
                 }

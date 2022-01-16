@@ -32,9 +32,7 @@ namespace ALE2
                     this.Right_child = child;
             }
         }
-
         
-        // TODO: Implement
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -43,13 +41,12 @@ namespace ALE2
             }
 
             // TODO: write your implementation of Equals() here
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             return base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            // TODO: write your implementation of GetHashCode() here
             throw new NotImplementedException();
             return base.GetHashCode();
         }

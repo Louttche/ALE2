@@ -1,0 +1,23 @@
+# Finite 6
+alphabet: ab
+states: 1,2,3
+final: 2
+transitions:
+1,a --> 2
+3,b --> 2
+3,b --> 3
+end.
+
+dfa: n
+finite: y
+
+words:
+,n
+a,y
+aa,n
+b,n
+bb,n
+ab,n
+ba,n
+aa
+end.

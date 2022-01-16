@@ -1,0 +1,21 @@
+# Finite 4
+alphabet: ab
+states: 1,2,3,4
+final: 2
+transitions:
+1,a --> 2
+3,b --> 4
+1,b --> 3
+1,b --> 4
+end.
+
+dfa: n
+finite: y
+
+words:
+,n
+a,y
+b,n
+bb,n
+ab,n
+end.

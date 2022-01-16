@@ -188,3 +188,12 @@ D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-win
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_3.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_4.txt
 D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\PDA_5.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_1.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_2.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_3.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_4.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_5.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_6.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_7a.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_7b.txt
+D:\OneDrive - Office 365 Fontys\Uni\Electives\ALE\ALE2\ale2\bin\Debug\net5.0-windows\files\Finite_8.txt
