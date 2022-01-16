@@ -132,7 +132,6 @@ namespace ALE2
             return bm;
         }
 
-        // TODO: Fix - Recursion needs work (not all examples work)
         public string ParseRegexFile(string[] contents)
         {
             Debug.WriteLine($"Parsing Regex file...");
@@ -226,25 +225,24 @@ namespace ALE2
             }
 
             // Get state to grow from
-            if (o_state == null)
+            if (o_state == null) {
                 o_state = states.Last();
+                Debug.WriteLine($"Open state: {o_state.state_label}");
+            }
 
             // Set state to end to
-            if (f_state == null)
+            if (f_state == null) {
                 f_state = new State($"q{state_counter++}", false, null);
-
-            if (o_state != null)
-                Debug.WriteLine($"Starting with state: {o_state.state_label}");
-            if (f_state != null)
                 Debug.WriteLine($"Final state: {f_state.state_label}");
+            }
 
             Debug.WriteLine($"Operator: '{parent_node.Value}'");
             switch (parent_node.Value)
             {
                 case '.':
                     // Create needed states
-                    State s1_concat = new State($"q{state_counter++}", false, null);
-                    State s2_concat = new State($"q{state_counter++}", false, null);
+                    State s1_concat = null;
+                    State s2_concat = null;
 
                     if (parent_node.Left_child != null)
                     {
@@ -252,41 +250,43 @@ namespace ALE2
                         if (parent_node.Left_child is OperantRegex)
                         {
                             Debug.WriteLine($" - Operant");
+                            s1_concat = new State($"q{state_counter++}", false, null);
+
                             // Create transition from last open state to new s1 state                            
                             Transition l_transition = new Transition(o_state, s1_concat, parent_node.Left_child.Value.ToString()); //this.open_state
                             all_transitions.Add(l_transition);
-
                             states.Add(s1_concat);
                         }
                         else {
                             Debug.WriteLine($" - Operator");
-                            ParseRegexContents((OperatorRegex)parent_node.Left_child);
+                            ParseRegexContents((OperatorRegex)parent_node.Left_child, o_state, f_state);
                         }
                     }
 
                     // Change open state for right child
-                    //this.open_state = states.Last();
+                    o_state = states.Last();
+                    Debug.WriteLine($"Open State changed to: {o_state.state_label}");
                     if (parent_node.Right_child != null)
                     {
                         Debug.Write($"\tRight child");
                         if (parent_node.Right_child is OperantRegex)
                         {
                             Debug.WriteLine($" - Operant");
+                            s2_concat = new State($"q{state_counter++}", false, null);
+
                             // Create transition from last open state to new s1 state
                             Transition r_transition = new Transition(o_state, s2_concat, parent_node.Right_child.Value.ToString()); //this.open_state
                             all_transitions.Add(r_transition);
-
                             states.Add(s2_concat);
                         }
                         else {
                             Debug.WriteLine($" - Operator");
-                            ParseRegexContents((OperatorRegex)parent_node.Right_child);
+                            ParseRegexContents((OperatorRegex)parent_node.Right_child, o_state, f_state);
                         }
                     }
 
                     break;
                 case '|':
-
                     // Initialize both left and right empty transitions to initial choice states
                     //left
                     State s1_choice = new State($"q{state_counter++}", false, null);
