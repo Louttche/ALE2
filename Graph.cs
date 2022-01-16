@@ -132,6 +132,133 @@ namespace ALE2
             return bm;
         }
 
+        public string ParseDefaultFile(string[] contents)
+        {
+            Debug.WriteLine($"Parsing Default file...");
+
+            //string name_of_file = "";
+            int sfrom = 0;
+            int line_index = -1;
+            foreach (string line in contents)
+            {
+                line_index++;
+                if (line.StartsWith('#'))
+                    continue;
+
+                // Get alphabet
+                else if (line.StartsWith("alphabet"))
+                {
+                    sfrom = line.IndexOf("alphabet") + "alphabet:".Length;
+                    this.alphabet = line.Substring(sfrom, line.Length - sfrom).Trim();
+                    Debug.WriteLine($"Alphabet parsed: {this.alphabet}");
+                }
+                // Get states (name only)
+                else if (line.StartsWith("states"))
+                {
+                    sfrom = line.IndexOf("states") + "states:".Length;
+                    string[] states = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+                    foreach (string state in states)
+                    {
+                        this.states.Add(new State(state, false, null)); // A null transitions param will initialise a new List()
+                        Debug.WriteLine($"State Name parsed: {state}");
+                    }
+                }
+                // Get and set final state
+                else if (line.StartsWith("final"))
+                {//final: q2,q4
+                    sfrom = line.IndexOf("final") + "final:".Length;
+                    string[] finalstates = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
+
+                    foreach (State state in this.states.Where(s => finalstates.Contains(s.state_label)))
+                    {
+                        state.isFinal = true;
+                        this.final_states.Add(state);
+                        Debug.WriteLine($"Set '{state.state_label}' as final state.");
+                    }
+                }
+                // Get and set transitions
+                else if (line.StartsWith("transitions"))
+                {
+                    for (int i = line_index + 1; i < contents.Length; i++)
+                    {
+                        if (contents[i] == "end.")
+                            break;
+
+                        // Separate the line's contents
+                        string trans_from = contents[i].Split(",")[0].Trim();
+                        string trans_value = contents[i].Split(",")[1].Split("-->")[0].Trim();
+                        string trans_to = contents[i].Split(",")[1].Split("-->")[1].Trim();
+
+                        // Add them to the states + new transition class objects
+                        State tfrom = this.states.FirstOrDefault(s => s.state_label == trans_from);
+                        State tTo = this.states.FirstOrDefault(s => s.state_label == trans_to);
+
+                        Transition transition = new Transition(tfrom, tTo, trans_value);
+
+                        if (transition != null)
+                        {
+                            //tfrom.AddTransition(transition);
+                            //// Only add to the destination state if its not a self-loop transition
+                            //// (or else same state gets duplicate transition in list)
+                            //if (!tfrom.Equals(tTo))
+                            //    tTo.AddTransition(transition);
+
+                            all_transitions.Add(transition);
+                        }
+                    }
+                }
+                // Get whether or not the file says the graph is a dfa
+                else if (line.StartsWith("dfa"))
+                {
+                    line.Trim();
+                    this.isDFA_file = line.Split(":")[1].Trim() == "y" ? true : false;
+                    this.isDFA = CheckDFA();
+
+                    if (this.isDFA != this.isDFA_file)
+                    {
+                        this.form.ui_pb_dfa.BackColor = Color.Gray;
+                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_dfa, "File is wrong.");
+                    }
+                    else
+                    {
+                        this.form.ui_pb_dfa.BackColor = Color.Transparent;
+                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_dfa, "");
+                    }
+                }
+                // Get whether or not the file says the graph is finite
+                else if (line.StartsWith("finite"))
+                {
+                    this.isFinite_file = line.Split(":")[1].Trim() == "y" ? true : false;
+                    this.isFinite = CheckFinite();
+
+                    if (this.isFinite != this.isFinite_file)
+                    {
+                        this.form.ui_pb_finite.BackColor = Color.Gray;
+                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_finite, "File is wrong.");
+                    }
+                    else
+                    {
+                        this.form.ui_pb_finite.BackColor = Color.Transparent;
+                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_finite, "");
+                    }
+                }
+                // Get words
+                else if (line.StartsWith("words"))
+                {
+                    for (int i = line_index + 1; i < contents.Length; i++)
+                    {
+                        if (contents[i] == "end.")
+                            break;
+
+                        this.words[contents[i].Split(",")[0].Trim()] = contents[i].Split(",")[1].Trim() == "y" ? true : false;
+                    }
+                }
+            }
+
+            // TODO: Assume name will always be in the first line of the file (miuns the '#' character in the start)
+            return CreateDotFromParsedFile();
+        }
+
         public string ParseRegexFile(string[] contents)
         {
             Debug.WriteLine($"Parsing Regex file...");
@@ -393,133 +520,6 @@ namespace ALE2
                 default:
                     break;
             }
-        }
-
-        public string ParseDefaultFile(string[] contents)
-        {
-            Debug.WriteLine($"Parsing Default file...");
-
-            //string name_of_file = "";
-            int sfrom = 0;
-            int line_index = -1;
-            foreach (string line in contents)
-            {
-                line_index++;
-                if (line.StartsWith('#'))
-                    continue;
-
-                // Get alphabet
-                else if (line.StartsWith("alphabet"))
-                {
-                    sfrom = line.IndexOf("alphabet") + "alphabet:".Length;
-                    this.alphabet = line.Substring(sfrom, line.Length - sfrom).Trim();
-                    Debug.WriteLine($"Alphabet parsed: {this.alphabet}");
-                }
-                // Get states (name only)
-                else if (line.StartsWith("states"))
-                {
-                    sfrom = line.IndexOf("states") + "states:".Length;
-                    string[] states = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
-                    foreach (string state in states)
-                    {
-                        this.states.Add(new State(state, false, null)); // A null transitions param will initialise a new List()
-                        Debug.WriteLine($"State Name parsed: {state}");
-                    }
-                }
-                // Get and set final state
-                else if (line.StartsWith("final"))
-                {//final: q2,q4
-                    sfrom = line.IndexOf("final") + "final:".Length;
-                    string[] finalstates = line.Substring(sfrom, line.Length - sfrom).Trim().Split(',');
-
-                    foreach (State state in this.states.Where(s => finalstates.Contains(s.state_label)))
-                    {
-                        state.isFinal = true;
-                        this.final_states.Add(state);
-                        Debug.WriteLine($"Set '{state.state_label}' as final state.");
-                    }
-                }
-                // Get and set transitions
-                else if (line.StartsWith("transitions"))
-                {
-                    for (int i = line_index + 1; i < contents.Length; i++)
-                    {
-                        if (contents[i] == "end.")
-                            break;
-
-                        // Separate the line's contents
-                        string trans_from = contents[i].Split(",")[0].Trim();
-                        string trans_value = contents[i].Split(",")[1].Split("-->")[0].Trim();
-                        string trans_to = contents[i].Split(",")[1].Split("-->")[1].Trim();
-
-                        // Add them to the states + new transition class objects
-                        State tfrom = this.states.FirstOrDefault(s => s.state_label == trans_from);
-                        State tTo = this.states.FirstOrDefault(s => s.state_label == trans_to);
-
-                        Transition transition = new Transition(tfrom, tTo, trans_value);
-
-                        if (transition != null)
-                        {
-                            //tfrom.AddTransition(transition);
-                            //// Only add to the destination state if its not a self-loop transition
-                            //// (or else same state gets duplicate transition in list)
-                            //if (!tfrom.Equals(tTo))
-                            //    tTo.AddTransition(transition);
-
-                            all_transitions.Add(transition);
-                        }
-                    }
-                }
-                // Get whether or not the file says the graph is a dfa
-                else if (line.StartsWith("dfa"))
-                {
-                    line.Trim();
-                    this.isDFA_file = line.Split(":")[1].Trim() == "y" ? true : false;
-                    this.isDFA = CheckDFA();
-
-                    if (this.isDFA != this.isDFA_file)
-                    {
-                        this.form.ui_pb_dfa.BackColor = Color.Gray;
-                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_dfa, "File is wrong.");
-                    }
-                    else
-                    {
-                        this.form.ui_pb_dfa.BackColor = Color.Transparent;
-                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_dfa, "");
-                    }
-                }
-                // Get whether or not the file says the graph is finite
-                else if (line.StartsWith("finite"))
-                {
-                    this.isFinite_file = line.Split(":")[1].Trim() == "y" ? true : false;
-                    this.isFinite = CheckFinite();
-
-                    if (this.isFinite != this.isFinite_file)
-                    {
-                        this.form.ui_pb_finite.BackColor = Color.Gray;
-                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_finite, "File is wrong.");
-                    }
-                    else
-                    {
-                        this.form.ui_pb_finite.BackColor = Color.Transparent;
-                        this.form.ui_tooltip_info.SetToolTip(this.form.ui_pb_finite, "");
-                    }
-                }
-                // Get words
-                else if (line.StartsWith("words"))
-                {
-                    for (int i = line_index + 1; i < contents.Length; i++)
-                    {
-                        if (contents[i] == "end.")
-                            break;
-
-                        this.words[contents[i].Split(",")[0].Trim()] = contents[i].Split(",")[1].Trim() == "y" ? true: false;
-                    }
-                }
-            }
-
-            // TODO: Assume name will always be in the first line of the file (miuns the '#' character in the start)
-            return CreateDotFromParsedFile();
         }
 
         public string ParsePDAFile(string[] contents)
