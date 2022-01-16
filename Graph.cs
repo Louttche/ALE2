@@ -228,9 +228,6 @@ namespace ALE2
             // Get state to grow from
             if (o_state == null)
                 o_state = states.Last();
-                //this.open_state = states.Last();
-            //else
-                //this.open_state = o_state;
 
             // Set state to end to
             if (f_state == null)
@@ -289,26 +286,21 @@ namespace ALE2
 
                     break;
                 case '|':
-                    // final state of Choice + its empties
-                    //State s5_choice = new State($"q{state_counter++}", false, null);
-                    Transition e2_left = null;
-                    Transition e2_right = null;
 
-                    // Add empty transition connecting final stages (if recursive '|')
-                    //if (f_state != null)
-                    //{
-                    //    Transition f_empty = new Transition(s5_choice, f_state, "_");
-                    //    all_transitions.Add(f_empty);
-                    //}
-
-                    // Set up both left and right empty transitions
+                    // Initialize both left and right empty transitions to initial choice states
                     //left
                     State s1_choice = new State($"q{state_counter++}", false, null);
-                    Transition e1_left = new Transition(o_state, s1_choice, "_"); // open_state
+                    Transition e1_left = new Transition(o_state, s1_choice, "_");
 
                     //right
                     State s2_choice = new State($"q{state_counter++}", false, null);
-                    Transition e1_right = new Transition(o_state, s2_choice, "_"); // open_state
+                    Transition e1_right = new Transition(o_state, s2_choice, "_");
+
+                    // Initialize final choice states for e transitions | (top) s1,a --> s3,e --> | (bottom) s2,b --> s4,e --> |
+                    State s3_choice = null;
+                    State s4_choice = null;
+                    Transition e2_left = null;
+                    Transition e2_right = null;
 
                     // Complete left side
                     if (parent_node.Left_child != null)
@@ -317,16 +309,17 @@ namespace ALE2
                         if (parent_node.Left_child is OperantRegex)
                         {
                             Debug.WriteLine($" - Operant");
-                            State s3_choice = new State($"q{state_counter++}", false, null);
+                            s3_choice = new State($"q{state_counter++}", false, null);
                             Transition l1_choice = new Transition(s1_choice, s3_choice, parent_node.Left_child.Value.ToString());
                             all_transitions.Add(l1_choice);
-
-                            e2_left = new Transition(s3_choice, f_state, "_"); //s5_choice
-                            this.states.Add(s3_choice);
                         }
                         else {
                             Debug.WriteLine($" - Operator");
                             ParseRegexContents((OperatorRegex)parent_node.Left_child, s1_choice, f_state);
+                            
+                            // previous f_state becomes s3_choice state
+                            s3_choice = f_state;
+                            f_state = new State($"q{state_counter++}", false, null);
                         }
 
                         this.states.Add(s1_choice);
@@ -339,20 +332,27 @@ namespace ALE2
                         if (parent_node.Right_child is OperantRegex)
                         {
                             Debug.WriteLine($" - Operant");
-                            State s4_choice = new State($"q{state_counter++}", false, null);
+                            s4_choice = new State($"q{state_counter++}", false, null);
                             Transition r1_choice = new Transition(s2_choice, s4_choice, parent_node.Right_child.Value.ToString());
                             all_transitions.Add(r1_choice);
-
-                            e2_right = new Transition(s4_choice, f_state, "_"); //s5_choice
-                            this.states.Add(s4_choice);
                         }
                         else {
                             Debug.WriteLine($" - Operator");
-                            ParseRegexContents((OperatorRegex)parent_node.Right_child, s2_choice, f_state); //s5
+                            ParseRegexContents((OperatorRegex)parent_node.Right_child, s2_choice, f_state);
+
+                            // previous f_state becomes s4_choice state
+                            s4_choice = f_state;
+                            f_state = new State($"q{state_counter++}", false, null);
                         }
 
                         this.states.Add(s2_choice);
                     }
+
+                    // Create 2 empty transitions to the final state
+                    e2_left = new Transition(s3_choice, f_state, "_");
+                    this.states.Add(s3_choice);
+                    e2_right = new Transition(s4_choice, f_state, "_");
+                    this.states.Add(s4_choice);
 
                     // Add all transitions to list (for graph dot conversion)
                     Transition[] trans_temp = { e1_left, e1_right, e2_left, e2_right };
@@ -944,45 +944,54 @@ namespace ALE2
             // Check if graph is Finite
             Debug.WriteLine("Checking if Finite...");
 
-            this.isFinite = true;
-
-            // Check for self-loop
-            foreach (State st in this.states)
+            try
             {
-                List<Transition> selfLoops = st.transitions.Where((t) => t.isSelfLoop()).ToList();
+                this.isFinite = true;
 
-                // Check if there are paths from that loop/state to the final state
-                foreach (Transition loop in selfLoops)
+                // Check for self-loop
+                foreach (State st in this.states)
                 {
-                    this.isFinite = !HasPathToFinal(st); // If there is path, graph is infinite
+                    List<Transition> selfLoops = st.transitions.Where((t) => t.isSelfLoop()).ToList();
 
-                    // if there is a single self-loop that is connected to a final state, it settles it
-                    if (this.isFinite == false)
-                        break;
-                                                             
-                }
-            }
-
-            // Check for Cycle
-            foreach(State st in this.states)
-            {
-                // Only check if any FINAL states belong to a cycle
-                if (st.isFinal)
-                {
-                    initState = st;
-                    // Check if is part of cycle AND that NOT ALL transitions in cycle are empty
-                    if (IsPartOfCycle(initState) && !cycle.All(t => t.isEmpty))
+                    // Check if there are paths from that loop/state to the final state
+                    foreach (Transition loop in selfLoops)
                     {
-                        Debug.WriteLine("NOT FINITE: final state part of cycle");
-                        this.isFinite = false;
-                        break;
+                        this.isFinite = !HasPathToFinal(st); // If there is path, graph is infinite
+
+                        // if there is a single self-loop that is connected to a final state, it settles it
+                        if (this.isFinite == false)
+                            break;
+
                     }
                 }
+
+                // Check for Cycle
+                foreach (State st in this.states)
+                {
+                    // Only check if any FINAL states belong to a cycle
+                    if (st.isFinal)
+                    {
+                        initState = st;
+                        // Check if is part of cycle AND that NOT ALL transitions in cycle are empty
+                        if (IsPartOfCycle(initState) && !cycle.All(t => t.isEmpty))
+                        {
+                            Debug.WriteLine("NOT FINITE: final state part of cycle");
+                            this.isFinite = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Set tick/x image based on truth value
+                this.form.ui_pb_finite.Image = this.isFinite ? new Bitmap(Properties.Resources.tick) : new Bitmap(Properties.Resources.x);
+                return this.isFinite;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Couldn't check if graph is finite: - {ex.ToString()}");
             }
 
-            // Set tick/x image based on truth value
-            this.form.ui_pb_finite.Image = this.isFinite ? new Bitmap(Properties.Resources.tick) : new Bitmap(Properties.Resources.x);
-            return this.isFinite;
+            return false;
         }
 
         private bool HasPathToFinal(State st)
