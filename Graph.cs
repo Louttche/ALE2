@@ -35,7 +35,6 @@ namespace ALE2
         // NFA --> DFA
         private List<string> states2calculate = new List<string>(); // state labels generated through table
         private Dictionary<char, List<string>> letters_states = new Dictionary<char, List<string>>(); // letter | state label --> for table
-        private int tableIndex = 0;
         public bool convertedDFA = false;
 
         public List<State> old_states = new List<State>();
@@ -717,10 +716,10 @@ namespace ALE2
         // TODO: Fix - Only works without sink (is implemented but has errors) and on DFA
         public string NDFA2DFA()
         {
+            Debug.WriteLine("\n\nConverting NDFA to a DFA...");
             // Reform states if epsilon transitions
             CheckForEpsilonClosures();
 
-            tableIndex = 0;
             this.letters_states.Clear();
             // Initialise groups dictionary (based on letters from alphabet)
             foreach (char lt in this.alphabet.ToCharArray())
@@ -748,9 +747,26 @@ namespace ALE2
                     // Create all states available
                     foreach (string l_state in states2calculate)
                     {
-                        // isFinal if is the last state
-                        State state_temp = new State(l_state, states2calculate.Last().Equals(l_state) ? true : false, null);
-                        this.states.Add(state_temp);
+                        // set as Final if is the last state - TODO: final condition not true for all cases, fix it
+                        bool s_final = states2calculate.Last().Equals(l_state) ? true : false;
+
+                        State state_temp = null;
+                        if (l_state == "SINK")
+                        {
+                            state_temp = new State("SINK", false, null);
+                            // Create self-loop transitions with each letter of the alphabet to this state
+                            foreach (char lttr in this.alphabet.ToCharArray()) {
+                                Transition tr_sink = new Transition(state_temp, state_temp, lttr.ToString());
+                            }
+                        }
+                        else
+                            state_temp = new State(l_state, s_final, null);
+
+                        if (state_temp != null)
+                            this.states.Add(state_temp);
+
+                        // Add last found state as final state - TODO: final condition not true for all cases, fix it
+                        //this.final_states.Add(this.states.Last());
                     }
 
                     // Create/Add appropriate transitions between the states
@@ -764,19 +780,12 @@ namespace ALE2
                             if (st_to != null)
                             {
                                 Transition transition_temp = new Transition(st_from, st_to, letter.ToString());
-
-                                st_from.AddTransition(transition_temp);
-                                st_to.AddTransition(transition_temp);
                                 this.all_transitions.Add(transition_temp);
                             }
-
                             letter_states_index++;
                         }
                         letter_states_index = 0;
                     }
-
-                    // Add last found state as final state
-                    this.final_states.Add(this.states.Last());
 
                     DebugParsedValues();
                     // Return a dot format using the new values
@@ -792,13 +801,13 @@ namespace ALE2
             return null;
         }
 
-        private bool NDFA2DFA_CalculateState(State curr_state)
+        private bool NDFA2DFA_CalculateState(State curr_state, int tb_index = 0)
         {
             try
             {
                 Debug.WriteLine($"Calculating state {curr_state.state_label}...");
 
-                // Go through every letter
+                // Go through every letter and fill in the table row for the current state
                 foreach (char letter in this.alphabet.ToCharArray())
                 {
                     Debug.WriteLine($"Processing {letter}...");
@@ -813,6 +822,7 @@ namespace ALE2
 
                         foreach (string cs in curr_states)
                         {
+                            Debug.WriteLine($"Checking transitions for {cs}...");
                             State sep_state = this.states.Find(s => s.state_label == cs);
                             if (sep_state != null)
                                 poss_transitions.AddRange(sep_state.FindTransitionsByValue(letter.ToString(), true));
@@ -842,56 +852,38 @@ namespace ALE2
                         // delete extra comma at the end
                         out_label = out_label.Substring(0, out_label.Length - 1);
 
-                        Debug.WriteLine($"Final new state label: {out_label}");
+                        Debug.WriteLine($"Final new state label: {out_label} under '{letter}'");
                         // Add state to letters_states under the letter
-                        //this.letters_states[letter] = out_label;
                         this.letters_states[letter].Add(out_label);
                     }
                     // If no possible transitions with that letter, create a sink state to transition to
                     else
                     {
-                        Debug.WriteLine($"Creating SINK state for letter {letter} from {curr_state.state_label}");
-                        State sink_state = new State("SINK", false, null);
-                        Transition sink_trans = new Transition(curr_state, sink_state, letter.ToString());
-                        sink_state.AddTransition(sink_trans);
-                        curr_state.AddTransition(sink_trans);
-                        this.states.Add(sink_state);
-                        this.all_transitions.Add(sink_trans);
-                        this.letters_states[letter].Add("NaN");
+                        Debug.WriteLine($"No transitions with {letter} from {curr_state.state_label}, marking as 'SINK'");
+                        this.letters_states[letter].Add("SINK");
                     }
                 }
 
-                Debug.WriteLine($"Number of states under letters: {this.letters_states.Count()}");
-
                 Debug.WriteLine($"\nChecking for new formed states...");
-
-                // Check if any new states in table
                 foreach (KeyValuePair<char, List<string>> l_state in this.letters_states)
                 {
-                    if (l_state.Value.Count > tableIndex)
+                    string focusedState = l_state.Value[tb_index];
+                    Debug.WriteLine($"{tb_index}: Checking if {focusedState} is a new state...");
+
+                    // If there are no states with the same label as the state we're checking add new state
+                    if (this.states2calculate.All(s => s != focusedState)) //this.states
                     {
-                        Debug.WriteLine($"{tableIndex}: Letter {l_state.Key} now points to state '{l_state.Value[tableIndex]}'");
+                        Debug.WriteLine($"{focusedState} IS new.");
+                        // Create new state (for future checking)
+                        State new_state = new State(focusedState, false, null);
+                        this.states.Add(new_state);
+                        // Add new state to table (states2calculate)
+                        this.states2calculate.Add(focusedState);
 
-                        // If there are no states with the same label
-                        if (l_state.Value[tableIndex] != "NaN" && this.old_states.All(s => s.state_label != l_state.Value[tableIndex])) //this.states
-                        {
-                            // Create new state
-                            State new_state = new State(l_state.Value[tableIndex], false, null);
-                            this.states.Add(new_state);
-
-                            Debug.WriteLine($"New state found: {l_state.Value[tableIndex]}");
-
-                            // Add new state to table (states2calculate)
-                            this.states2calculate.Add(l_state.Value[tableIndex]);
-
-                            // call this method again with new state
-                            NDFA2DFA_CalculateState(new_state);
-
-                            tableIndex++; // Increase the index that refers to which table row we are currently focused on
-                        }
-                        else
-                            Debug.WriteLine("No new states found.");
-                    }
+                        // call this method again with new state looking at next table index
+                        NDFA2DFA_CalculateState(new_state, this.states2calculate.Count() - 1);
+                    } else
+                        Debug.WriteLine($"{focusedState} is NOT new.");
                 }
 
                 return true;
@@ -905,7 +897,7 @@ namespace ALE2
 
         private bool CheckForEpsilonClosures()
         {
-            Debug.WriteLine("Epsilon Enclosure");
+            Debug.WriteLine("\nEpsilon Enclosure");
             bool hasEpsilonClosures = false;
             foreach (State st in this.states)
             {
