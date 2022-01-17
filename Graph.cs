@@ -37,8 +37,6 @@ namespace ALE2
         private Dictionary<char, List<string>> letters_states = new Dictionary<char, List<string>>(); // letter | state label --> for table
         public bool convertedDFA = false;
 
-        public List<State> old_states = new List<State>();
-
         // PDA
         public bool isPDA = false;
         private Stack<string> pdaStack = new Stack<string>();
@@ -611,12 +609,6 @@ namespace ALE2
                             if (transition != null)
                             {
                                 transition.AddStack(pop_val, push_val);
-                                //tfrom.AddTransition(transition);
-                                //// Only add to the destination state if its not a self-loop transition
-                                //// (or else same state gets duplicate transition in list)
-                                //if (!tfrom.Equals(tTo))
-                                //    tTo.AddTransition(transition);
-
                                 all_transitions.Add(transition);
                             }
                         }
@@ -713,10 +705,13 @@ namespace ALE2
             return this.isDFA;
         }
 
-        // TODO: Fix - Only works without sink (is implemented but has errors) and on DFA
         public string NDFA2DFA()
         {
             Debug.WriteLine("\n\nConverting NDFA to a DFA...");
+
+            // Store a copy of the final states temp
+            List<State> prev_final_states = new List<State>(this.final_states);
+
             // Reform states if epsilon transitions
             CheckForEpsilonClosures();
 
@@ -726,7 +721,6 @@ namespace ALE2
                 this.letters_states.Add(lt, new List<string>());
 
             states2calculate.Add(this.states[0].state_label); // Add the initial state to start the table (label)
-            old_states = this.states;
             bool isDFAGraphReady = NDFA2DFA_CalculateState(this.states[0]);
 
             if (isDFAGraphReady)
@@ -747,8 +741,11 @@ namespace ALE2
                     // Create all states available
                     foreach (string l_state in states2calculate)
                     {
-                        // set as Final if is the last state - TODO: final condition not true for all cases, fix it
-                        bool s_final = states2calculate.Last().Equals(l_state) ? true : false;
+                        // Set states to final if they contain a state in their label that was previously a final state
+                        bool s_final = prev_final_states.Any(os => l_state.Contains(os.state_label));
+                        foreach (State os in prev_final_states) {
+                            Debug.WriteLine($"{os.state_label} is final: {os.isFinal}");
+                        }
 
                         State state_temp = null;
                         if (l_state == "SINK")
@@ -763,10 +760,13 @@ namespace ALE2
                             state_temp = new State(l_state, s_final, null);
 
                         if (state_temp != null)
+                        {
+                            if (s_final) {
+                                this.final_states.Add(state_temp);
+                                Debug.WriteLine($"{state_temp.state_label} added to final states list.");
+                            }
                             this.states.Add(state_temp);
-
-                        // Add last found state as final state - TODO: final condition not true for all cases, fix it
-                        //this.final_states.Add(this.states.Last());
+                        }
                     }
 
                     // Create/Add appropriate transitions between the states
