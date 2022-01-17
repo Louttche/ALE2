@@ -79,10 +79,12 @@ namespace ALE2
                     {
                         pb_graph.Image = this.graph.bm_graph;
                         btn_refresh.Enabled = true;
-                        btn_ndfa2dfa.Enabled = true;
+                        
+                        if (!this.graph.isDFA) {
+                            btn_ndfa2dfa.Enabled = true;
+                            btn_ndfa2dfa.Text = "To DFA";
+                        }
                     }
-
-                    btn_ndfa2dfa.Text = "To DFA";
                 }
             }
             catch (Exception ex) { Debug.WriteLine("Could not load file.\n\t-" + ex.ToString()); }

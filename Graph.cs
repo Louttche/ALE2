@@ -56,8 +56,6 @@ namespace ALE2
             this.bm_graph = null;
 
             this.state_counter = 0;
-            // TODO: Use list or stack
-            //this.open_state = new State(null, false, null);
         }
 
         public static Bitmap Run(string dot)
@@ -1134,10 +1132,24 @@ namespace ALE2
                             else
                                 return true;
                         }
+                        //tt.pointsTo.isFinal) // TODO: regex states not set as final in properties
                         else
                         {
                             Debug.WriteLine($"'{this.stateStack.Peek().state_label}' is NOT a final state. Checking other transitions...");
-                            this.stateStack.Pop(); // pop stack to go back to previous parent
+                            
+                            // Check if current state has an e transition to a final state:
+                            foreach (Transition tt in this.stateStack.Peek().FindTransitionsByValue(this.form.epsilon, true, true))
+                            {
+                                Debug.WriteLine($"{tt.ToString()} found. Checking if {tt.pointsTo.state_label} is final...");
+                                // if transition points to final state, return true to accept word
+                                if (this.final_states.Contains(tt.pointsTo)) {
+                                    Debug.WriteLine($"{tt.pointsTo.state_label} is final, word accepted.");
+                                    return true;
+                                }
+                            }
+
+                            // if no accepting path found, pop stack to go back to previous parent
+                            this.stateStack.Pop();
                         }
                     }
                     else
